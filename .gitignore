@@ -26,5 +26,9 @@ dist/
 # VS Code
 .vscode/
 
+# Local config
+.claude/
+CLAUDE.md
+
 # Optional: ignore large audio files
 # assets/sounds/*.wav

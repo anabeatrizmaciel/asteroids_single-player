@@ -190,3 +190,109 @@ Importante:
   não é uma camada totalmente agnóstica de pygame.
 - O fluxo de renderização atual passa por `client.renderer`; `World` não é
   responsável por desenhar HUD ou sprites.
+
+## 6. Análise de Qualidade
+
+### 6.1 Coesão (7/10)
+
+Pontos positivos:
+- `config.py` tem responsabilidade única perfeita (só constantes)
+- `commands.py` é um dataclass puro, sem comportamento
+- Cada entidade (`Bullet`, `Asteroid`, `Ship`, `UFO`) tem foco claro
+
+Pontos a melhorar:
+- `Game` (client/game.py) acumula responsabilidades demais: loop do jogo,
+  inicialização pygame, gerenciamento de canais de áudio, lógica de siren
+  do UFO e handling de eventos. Deveria extrair `AudioManager`.
+- `World` (core/world.py) mistura estado do jogo com 77 linhas de detecção
+  de colisões (5 métodos). Deveria extrair `CollisionManager`.
+- `Ship.apply_command` mistura resposta a input com física (rotação, thrust,
+  fricção e tiro no mesmo método).
+
+### 6.2 Acoplamento (5/10)
+
+Problema principal: core/ depende diretamente de pygame:
+- Entidades herdam de `pygame.sprite.Sprite`
+- `World` usa `pygame.sprite.Group`
+- `Vec` é alias para `pygame.math.Vector2`
+- A separação core/client é parcial — core não é agnóstico de framework
+
+Outros problemas:
+- `Renderer` usa cadeia de `isinstance` para decidir como desenhar cada
+  entidade — impossível adicionar nova entidade sem modificar Renderer.
+- Config global `C.` importado em ~35 referências sem injeção de dependência.
+- Lógica de áudio (sirens, canais) misturada diretamente no `Game`.
+
+### 6.3 Manutenibilidade (6/10)
+
+Números mágicos espalhados pelo código:
+- `entities.py`: steps do polígono (12/10/8), jitter (0.75-1.2), ângulo
+  do ship (140.0), offset de spawn da bala (+6)
+- `world.py`: distância mínima de spawn (150), multiplicador de split (1.2),
+  contagem de wave (3 + wave)
+- `game.py`: config de áudio (44100, -16, 2, 512), font sizes (22, 64)
+- `renderer.py`: posições de layout (170, 350, 340, 260)
+
+Duplicação de código:
+- Padrão de timer/countdown repetido 5+ vezes sem utility
+- 5 métodos de colisão com estrutura repetitiva
+
+Bug identificado:
+- Hyperspace pode teleportar o jogador para dentro de um asteroide (sem
+  verificação de posição segura).
+
+### 6.4 Legibilidade (7/10)
+
+Pontos positivos:
+- Nomes descritivos: `rotate_left`, `spawn_player()`, `_handle_collisions()`
+- Type hints presentes na maioria das assinaturas
+- Métodos privados com `_` consistente
+
+Pontos a melhorar:
+- Comentários inconsistentes: português misturado com inglês
+- Docstrings ausentes em métodos complexos do UFO
+- Cenas como strings hardcoded ("menu", "play", "game_over") em vez de Enum
+- `UFO_BULLET_OWNER = -10` sem comentário explicativo
+
+## 7. Preparação para Multiplayer
+
+### 7.1 O que já está pronto
+
+A arquitetura atual facilita a conversão em vários pontos:
+
+- `World.update(dt, commands: dict[int, PlayerCommand])` já aceita múltiplos
+  jogadores por design.
+- `World.ships: dict[int, Ship]` indexado por player_id.
+- `Bullet.owner` rastreia quem atirou cada bala.
+- `PlayerCommand` como dataclass é fácil de serializar para rede.
+- Separação core/client já existe (mesmo com acoplamento pygame).
+
+### 7.2 O que precisa mudar
+
+Refatorações necessárias antes da conversão:
+
+1. **Desacoplar core de pygame** -- entidades não devem herdar de
+   `pygame.sprite.Sprite`; criar interfaces próprias para que core/
+   seja agnóstico de framework.
+
+2. **Extrair CollisionManager** -- 77 linhas de colisão em `World` devem
+   ir para classe separada, facilitando testes e modificação de regras.
+
+3. **Score por jogador** -- `self.score` atual é global; precisa ser
+   `dict[int, int]` indexado por player_id.
+
+4. **Vidas por jogador** -- `self.lives` precisa ser por player, com
+   game over parcial (um jogador morre, outro continua).
+
+5. **Spawn de múltiplos players** -- `spawn_player()` já recebe `pid`,
+   mas precisa gerenciar posições iniciais distintas.
+
+6. **Networking** -- serializar `PlayerCommand` (envio) e estado do
+   `World` (sincronização entre clientes).
+
+7. **HUD multi-player** -- mostrar score/lives de cada jogador.
+
+8. **Lobby** -- tela de espera antes do jogo iniciar.
+
+9. **Eliminar números mágicos** -- centralizar em `config.py` antes
+   de adicionar complexidade multiplayer.

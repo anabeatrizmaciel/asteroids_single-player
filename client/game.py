@@ -1,9 +1,8 @@
-"""Game loop e cenas (menu, jogo, game over).
+"""Game loop and scenes (menu, play, game over).
 
-Didático:
-- InputMapper converte teclado -> PlayerCommand.
-- World atualiza simulação e gera eventos (strings) para o Game.
-- Game decide áudio e telas (baixo acoplamento).
+- InputMapper converts keyboard input into PlayerCommand.
+- World updates the simulation and generates events (strings) for Game.
+- Game handles audio and screen transitions (low coupling).
 """
 
 import sys
@@ -18,14 +17,14 @@ from core.world import World
 
 
 class Scene:
-    """Representa uma tela do jogo."""
+    """Represents a game screen state."""
 
     def __init__(self, name: str) -> None:
         self.name = name
 
 
 class Game:
-    """Orquestra input -> update -> draw."""
+    """Orchestrates input -> update -> draw."""
 
     def __init__(self) -> None:
         pg.mixer.pre_init(44100, -16, 2, 512)

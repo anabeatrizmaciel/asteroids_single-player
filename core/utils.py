@@ -1,4 +1,4 @@
-"""Utilitários comuns do jogo."""
+"""Common game utilities."""
 
 import math
 from random import random, uniform

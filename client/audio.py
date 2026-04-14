@@ -1,8 +1,7 @@
-"""Áudio do jogo (cliente).
+"""Game audio (client-side).
 
-Didático:
-- World não toca som (baixo acoplamento).
-- World gera eventos (strings) e Game decide tocar.
+- World does not play sounds (low coupling).
+- World generates events (strings) and Game decides what to play.
 """
 
 from dataclasses import dataclass

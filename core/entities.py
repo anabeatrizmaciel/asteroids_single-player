@@ -1,4 +1,4 @@
-"""Entidades do jogo (sprites)."""
+"""Game entities (sprites)."""
 
 import math
 from random import choice, random, uniform
@@ -21,7 +21,7 @@ def rotate_vec(v: Vec, deg: float) -> Vec:
 
 
 class Bullet(pg.sprite.Sprite):
-    """Tiro genérico."""
+    """Generic projectile."""
 
     def __init__(
         self,
@@ -49,7 +49,7 @@ class Bullet(pg.sprite.Sprite):
 
 
 class Asteroid(pg.sprite.Sprite):
-    """Asteroide com polígono irregular."""
+    """Asteroid with irregular polygon shape."""
 
     def __init__(self, pos: Vec, vel: Vec, size: str) -> None:
         super().__init__()
@@ -81,7 +81,7 @@ class Asteroid(pg.sprite.Sprite):
 
 
 class Ship(pg.sprite.Sprite):
-    """Nave controlada por comando (não lê teclado)."""
+    """Ship controlled by command (does not read keyboard)."""
 
     def __init__(self, player_id: PlayerId, pos: Vec) -> None:
         super().__init__()
@@ -156,7 +156,7 @@ class Ship(pg.sprite.Sprite):
         self.rect.center = (int(self.pos.x), int(self.pos.y))
 
     def ship_points(self) -> tuple[Vec, Vec, Vec]:
-        """Retorna os 3 pontos do triângulo da nave."""
+        """Return the 3 vertices of the ship triangle."""
         dirv = angle_to_vec(self.angle)
         left = angle_to_vec(self.angle + 140.0)
         right = angle_to_vec(self.angle - 140.0)
@@ -168,7 +168,7 @@ class Ship(pg.sprite.Sprite):
 
 
 class UFO(pg.sprite.Sprite):
-    """UFO com dois comportamentos e tiro."""
+    """UFO with two movement behaviors and shooting."""
 
     def __init__(
         self,

@@ -1,11 +1,11 @@
-"""Comandos de jogador (input agnóstico)."""
+"""Player commands (input-agnostic)."""
 
 from dataclasses import dataclass
 
 
 @dataclass(frozen=True, slots=True)
 class PlayerCommand:
-    """Comando aplicado a uma nave em um frame."""
+    """Command applied to a ship on a single frame."""
 
     rotate_left: bool = False
     rotate_right: bool = False

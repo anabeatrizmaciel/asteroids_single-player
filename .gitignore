@@ -23,10 +23,8 @@ dist/
 # Logs
 *.log
 
-# VS Code
+# IDE and local tooling
 .vscode/
-
-# Local config
 .claude/
 CLAUDE.md
 

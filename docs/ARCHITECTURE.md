@@ -1,21 +1,19 @@
 # ARCHITECTURE
 
-Projeto: `asteroids_single-player`
+Project: `asteroids_single-player`
 
-## 1. Objetivo
+## 1. Purpose
 
-Este documento descreve a arquitetura atual real do projeto.
+This document describes the current architecture of the project.
 
-Escopo:
-- Código Python em `core/`, `client/` e `main.py`
-- Documentação em `docs/`
-- Assets em `assets/`
+Scope:
+- Python code in `core/`, `client/`, and `main.py`
+- Documentation in `docs/`
+- Assets in `assets/`
 
-Este projeto ainda é single-player.
+This project is still single-player.
 
-## 2. Estrutura Atual do Repositório
-
-Estrutura existente hoje:
+## 2. Current Repository Structure
 
 ```text
 asteroids_single-player/
@@ -37,7 +35,7 @@ asteroids_single-player/
 └── main.py
 ```
 
-Arquivos de áudio atuais em `assets/sounds/`:
+Audio files in `assets/sounds/`:
 - `asteroid_explosion.wav`
 - `player_shoot.wav`
 - `ship_explosion.wav`
@@ -46,125 +44,125 @@ Arquivos de áudio atuais em `assets/sounds/`:
 - `ufo_siren_big.wav`
 - `ufo_siren_small.wav`
 
-## 3. Responsabilidades por Arquivo
+## 3. Responsibilities by File
 
 ### `main.py`
 
-Ponto de entrada.
+Entry point.
 
-Responsabilidades atuais:
-- Importa `Game` de `client.game`
-- Executa `Game().run()`
+Current responsibilities:
+- Imports `Game` from `client.game`
+- Runs `Game().run()`
 
 ### `client/game.py`
 
-Orquestra loop, cenas e integração com pygame.
+Orchestrates the game loop, scenes, and pygame integration.
 
-Responsabilidades atuais:
-- Inicialização do pygame e mixer
-- Criação de janela, relógio e fontes
-- Controle de cenas (`menu`, `play`, `game_over`)
-- Leitura de eventos e encerramento do jogo
-- Uso de `InputMapper` para converter input em comando
-- Chamada de `World.update(dt, commands)`
-- Desenho de menu, game over e mundo
-- Execução de áudio a partir de `world.events`
-- Controle de loops de áudio (thrust e sirene UFO)
+Current responsibilities:
+- Pygame and mixer initialization
+- Window, clock, and font creation
+- Scene control (`menu`, `play`, `game_over`)
+- Event reading and game exit
+- Uses `InputMapper` to convert input into commands
+- Calls `World.update(dt, commands)`
+- Draws menu, game over, and world
+- Plays audio based on `world.events`
+- Controls audio loops (thrust and UFO siren)
 
 ### `client/renderer.py`
 
-Renderização do cliente.
+Client-side rendering.
 
-Responsabilidades atuais:
-- Limpeza da tela
-- Desenho das cenas (`menu`, `game_over`)
-- Desenho do mundo a partir dos sprites expostos por `World`
-- Desenho do HUD
+Current responsibilities:
+- Screen clearing
+- Scene drawing (`menu`, `game_over`)
+- World drawing from sprites exposed by `World`
+- HUD drawing
 
 ### `client/controls.py`
 
-Mapeamento de input local para comando do jogador.
+Local input mapping to player commands.
 
-Responsabilidades atuais:
-- Classe `InputMapper`
-- Captura de eventos `KEYDOWN` para `shoot` e `hyperspace`
-- Leitura de teclas contínuas para rotação e thrust
-- Construção de `PlayerCommand`
+Current responsibilities:
+- `InputMapper` class
+- Captures `KEYDOWN` events for `shoot` and `hyperspace`
+- Reads continuous keys for rotation and thrust
+- Builds `PlayerCommand`
 
 ### `client/audio.py`
 
-Carregamento de efeitos sonoros.
+Sound effect loading.
 
-Responsabilidades atuais:
-- `SoundPack` com referências de `pygame.mixer.Sound`
-- `load_sounds(base_path)` para carregar sons a partir de `core.config`
+Current responsibilities:
+- `SoundPack` with `pygame.mixer.Sound` references
+- `load_sounds(base_path)` to load sounds from `core.config`
 
 ### `core/world.py`
 
-Núcleo de regras do jogo (`World`).
+Core game rules (`World`).
 
-Responsabilidades atuais:
-- Estado do jogo: naves, tiros, asteroides, UFOs, score, vidas, wave
-- Spawn de jogador, asteroides e UFO
-- Aplicação de comandos por `player_id`
-- Atualização da simulação por frame
-- Tratamento de colisões
-- Regras de pontuação, morte e game over
-- Geração de eventos de domínio em `world.events`
+Current responsibilities:
+- Game state: ships, bullets, asteroids, UFOs, score, lives, wave
+- Player, asteroid, and UFO spawning
+- Command application by `player_id`
+- Per-frame simulation update
+- Collision handling
+- Scoring, death, and game over rules
+- Domain event generation in `world.events`
 
 ### `core/entities.py`
 
-Entidades do jogo baseadas em `pygame.sprite.Sprite`.
+Game entities based on `pygame.sprite.Sprite`.
 
-Responsabilidades atuais:
+Current responsibilities:
 - Classes: `Ship`, `Asteroid`, `Bullet`, `UFO`
-- Física e atualização local de cada entidade
-- Regras de tiro de `Ship` e `UFO`
-- Constante `UFO_BULLET_OWNER`
+- Physics and local update for each entity
+- Firing rules for `Ship` and `UFO`
+- `UFO_BULLET_OWNER` constant
 
 ### `core/commands.py`
 
-Contrato de intenção do jogador.
+Player intent contract.
 
-Responsabilidades atuais:
-- `dataclass` imutável `PlayerCommand`
+Current responsibilities:
+- Immutable `dataclass` `PlayerCommand`
 - Flags: `rotate_left`, `rotate_right`, `thrust`, `shoot`, `hyperspace`
 
 ### `core/utils.py`
 
-Utilitários matemáticos.
+Math utilities.
 
-Responsabilidades atuais:
-- Alias `Vec` (`pygame.math.Vector2`)
-- Helpers de vetor e geometria (`wrap_pos`, `angle_to_vec`, etc.)
+Current responsibilities:
+- `Vec` alias (`pygame.math.Vector2`)
+- Vector and geometry helpers (`wrap_pos`, `angle_to_vec`, etc.)
 
 ### `core/config.py`
 
-Configuração central do jogo.
+Central game configuration.
 
-Responsabilidades atuais:
-- Constantes de tela, FPS e IDs
-- Parâmetros de nave, tiro, asteroide e UFO
-- Cores e caminhos de assets
-- Nomes dos arquivos de som
+Current responsibilities:
+- Screen, FPS, and ID constants
+- Ship, bullet, asteroid, and UFO parameters
+- Colors and asset paths
+- Sound file names
 
 ### `docs/`
 
-Documentação do projeto.
+Project documentation.
 
-Estado atual:
-- Contém este documento (`ARCHITECTURE.md`)
+Current state:
+- Contains this document (`ARCHITECTURE.md`)
 
 ### `assets/`
 
-Recursos estáticos do jogo.
+Static game resources.
 
-Estado atual:
-- Pasta `sounds/` com efeitos WAV usados pelo cliente pygame
+Current state:
+- `sounds/` folder with WAV effects used by the pygame client
 
-## 4. Dependências Entre Módulos (Atual)
+## 4. Module Dependencies (Current)
 
-Fluxo principal de imports observado hoje:
+Main import flow observed today:
 - `main.py` -> `client.game`
 - `client.game` -> `client.audio`, `client.controls`, `client.renderer`,
   `core.config`, `core.world`
@@ -176,123 +174,121 @@ Fluxo principal de imports observado hoje:
 - `core.entities` -> `core.config`, `core.commands`, `core.utils`
 - `core.utils` -> `core.config`
 
-Regra de saúde arquitetural:
-- Evitar imports circulares
+Architectural health rule:
+- Avoid circular imports
 
-## 5. Observações Arquiteturais
+## 5. Architectural Notes
 
-A separação atual entre `core/` e `client/` já existe e está em uso.
+The current separation between `core/` and `client/` already exists and is in use.
 
-Importante:
-- `client/` concentra integração com pygame para input, render e áudio.
-- `core/` concentra regras, estado do jogo e entidades.
-- `core/` ainda depende de `pygame.sprite` e `pygame.math.Vector2`, então
-  não é uma camada totalmente agnóstica de pygame.
-- O fluxo de renderização atual passa por `client.renderer`; `World` não é
-  responsável por desenhar HUD ou sprites.
+Important:
+- `client/` concentrates pygame integration for input, rendering, and audio.
+- `core/` concentrates rules, game state, and entities.
+- `core/` still depends on `pygame.sprite` and `pygame.math.Vector2`, so
+  it is not a fully framework-agnostic layer.
+- The current rendering flow goes through `client.renderer`; `World` is not
+  responsible for drawing HUD or sprites.
 
-## 6. Análise de Qualidade
+## 6. Quality Analysis
 
-### 6.1 Coesão (7/10)
+### 6.1 Cohesion (7/10)
 
-Pontos positivos:
-- `config.py` tem responsabilidade única perfeita (só constantes)
-- `commands.py` é um dataclass puro, sem comportamento
-- Cada entidade (`Bullet`, `Asteroid`, `Ship`, `UFO`) tem foco claro
+Strengths:
+- `config.py` has perfect single responsibility (constants only)
+- `commands.py` is a pure dataclass with no behavior
+- Each entity (`Bullet`, `Asteroid`, `Ship`, `UFO`) has clear focus
 
-Pontos a melhorar:
-- `Game` (client/game.py) acumula responsabilidades demais: loop do jogo,
-  inicialização pygame, gerenciamento de canais de áudio, lógica de siren
-  do UFO e handling de eventos. Deveria extrair `AudioManager`.
-- `World` (core/world.py) mistura estado do jogo com 77 linhas de detecção
-  de colisões (5 métodos). Deveria extrair `CollisionManager`.
-- `Ship.apply_command` mistura resposta a input com física (rotação, thrust,
-  fricção e tiro no mesmo método).
+Areas for improvement:
+- `Game` (client/game.py) accumulates too many responsibilities: game loop,
+  pygame initialization, audio channel management, UFO siren logic, and
+  event handling. Should extract `AudioManager`.
+- `World` (core/world.py) mixes game state with 77 lines of collision
+  detection (5 methods). Should extract `CollisionManager`.
+- `Ship.apply_command` mixes input response with physics (rotation, thrust,
+  friction, and firing in the same method).
 
-### 6.2 Acoplamento (5/10)
+### 6.2 Coupling (5/10)
 
-Problema principal: core/ depende diretamente de pygame:
-- Entidades herdam de `pygame.sprite.Sprite`
-- `World` usa `pygame.sprite.Group`
-- `Vec` é alias para `pygame.math.Vector2`
-- A separação core/client é parcial — core não é agnóstico de framework
+Main problem: core/ directly depends on pygame:
+- Entities inherit from `pygame.sprite.Sprite`
+- `World` uses `pygame.sprite.Group`
+- `Vec` is an alias for `pygame.math.Vector2`
+- The core/client separation is partial -- core is not framework-agnostic
 
-Outros problemas:
-- `Renderer` usa cadeia de `isinstance` para decidir como desenhar cada
-  entidade — impossível adicionar nova entidade sem modificar Renderer.
-- Config global `C.` importado em ~35 referências sem injeção de dependência.
-- Lógica de áudio (sirens, canais) misturada diretamente no `Game`.
+Other issues:
+- `Renderer` uses `isinstance` chains to decide how to draw each
+  entity -- impossible to add a new entity without modifying Renderer.
+- Global config `C.` imported in ~35 references without dependency injection.
+- Audio logic (sirens, channels) mixed directly into `Game`.
 
-### 6.3 Manutenibilidade (6/10)
+### 6.3 Maintainability (6/10)
 
-Números mágicos espalhados pelo código:
-- `entities.py`: steps do polígono (12/10/8), jitter (0.75-1.2), ângulo
-  do ship (140.0), offset de spawn da bala (+6)
-- `world.py`: distância mínima de spawn (150), multiplicador de split (1.2),
-  contagem de wave (3 + wave)
-- `game.py`: config de áudio (44100, -16, 2, 512), font sizes (22, 64)
-- `renderer.py`: posições de layout (170, 350, 340, 260)
+Magic numbers scattered throughout the code:
+- `entities.py`: polygon steps (12/10/8), jitter (0.75-1.2), ship
+  angle (140.0), bullet spawn offset (+6)
+- `world.py`: minimum spawn distance (150), split speed multiplier (1.2),
+  wave count (3 + wave)
+- `game.py`: audio config (44100, -16, 2, 512), font sizes (22, 64)
+- `renderer.py`: layout positions (170, 350, 340, 260)
 
-Duplicação de código:
-- Padrão de timer/countdown repetido 5+ vezes sem utility
-- 5 métodos de colisão com estrutura repetitiva
+Code duplication:
+- Timer/countdown pattern repeated 5+ times without a utility
+- 5 collision methods with repetitive structure
 
-Bug identificado:
-- Hyperspace pode teleportar o jogador para dentro de um asteroide (sem
-  verificação de posição segura).
+Known bug:
+- Hyperspace can teleport the player inside an asteroid (no safe
+  position check).
 
-### 6.4 Legibilidade (7/10)
+### 6.4 Readability (7/10)
 
-Pontos positivos:
-- Nomes descritivos: `rotate_left`, `spawn_player()`, `_handle_collisions()`
-- Type hints presentes na maioria das assinaturas
-- Métodos privados com `_` consistente
+Strengths:
+- Descriptive names: `rotate_left`, `spawn_player()`, `_handle_collisions()`
+- Type hints present on most signatures
+- Consistent private method `_` prefix
 
-Pontos a melhorar:
-- Comentários inconsistentes: português misturado com inglês
-- Docstrings ausentes em métodos complexos do UFO
-- Cenas como strings hardcoded ("menu", "play", "game_over") em vez de Enum
-- `UFO_BULLET_OWNER = -10` sem comentário explicativo
+Areas for improvement:
+- Scenes as hardcoded strings ("menu", "play", "game_over") instead of Enum
+- `UFO_BULLET_OWNER = -10` without explanatory comment
 
-## 7. Preparação para Multiplayer
+## 7. Multiplayer Preparation
 
-### 7.1 O que já está pronto
+### 7.1 What is already in place
 
-A arquitetura atual facilita a conversão em vários pontos:
+The current architecture facilitates conversion in several ways:
 
-- `World.update(dt, commands: dict[int, PlayerCommand])` já aceita múltiplos
-  jogadores por design.
-- `World.ships: dict[int, Ship]` indexado por player_id.
-- `Bullet.owner` rastreia quem atirou cada bala.
-- `PlayerCommand` como dataclass é fácil de serializar para rede.
-- Separação core/client já existe (mesmo com acoplamento pygame).
+- `World.update(dt, commands: dict[int, PlayerCommand])` already accepts
+  multiple players by design.
+- `World.ships: dict[int, Ship]` indexed by player_id.
+- `Bullet.owner` tracks who fired each bullet.
+- `PlayerCommand` as a dataclass is easy to serialize for networking.
+- core/client separation already exists (even with pygame coupling).
 
-### 7.2 O que precisa mudar
+### 7.2 What needs to change
 
-Refatorações necessárias antes da conversão:
+Required refactorings before conversion:
 
-1. **Desacoplar core de pygame** -- entidades não devem herdar de
-   `pygame.sprite.Sprite`; criar interfaces próprias para que core/
-   seja agnóstico de framework.
+1. **Decouple core from pygame** -- entities should not inherit from
+   `pygame.sprite.Sprite`; create custom interfaces so that core/
+   is framework-agnostic.
 
-2. **Extrair CollisionManager** -- 77 linhas de colisão em `World` devem
-   ir para classe separada, facilitando testes e modificação de regras.
+2. **Extract CollisionManager** -- 77 lines of collision code in `World`
+   should go into a separate class, making testing and rule modification easier.
 
-3. **Score por jogador** -- `self.score` atual é global; precisa ser
-   `dict[int, int]` indexado por player_id.
+3. **Per-player score** -- `self.score` is currently global; needs to be
+   `dict[int, int]` indexed by player_id.
 
-4. **Vidas por jogador** -- `self.lives` precisa ser por player, com
-   game over parcial (um jogador morre, outro continua).
+4. **Per-player lives** -- `self.lives` needs to be per player, with
+   partial game over (one player dies, another continues).
 
-5. **Spawn de múltiplos players** -- `spawn_player()` já recebe `pid`,
-   mas precisa gerenciar posições iniciais distintas.
+5. **Multi-player spawning** -- `spawn_player()` already receives `pid`,
+   but needs to manage distinct starting positions.
 
-6. **Networking** -- serializar `PlayerCommand` (envio) e estado do
-   `World` (sincronização entre clientes).
+6. **Networking** -- serialize `PlayerCommand` (send) and `World`
+   state (sync between clients).
 
-7. **HUD multi-player** -- mostrar score/lives de cada jogador.
+7. **Multi-player HUD** -- display score/lives for each player.
 
-8. **Lobby** -- tela de espera antes do jogo iniciar.
+8. **Lobby** -- waiting screen before the game starts.
 
-9. **Eliminar números mágicos** -- centralizar em `config.py` antes
-   de adicionar complexidade multiplayer.
+9. **Eliminate magic numbers** -- centralize in `config.py` before
+   adding multiplayer complexity.

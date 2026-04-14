@@ -1,4 +1,4 @@
-"""Configurações do jogo (constantes)."""
+"""Game configuration constants."""
 
 import os
 
@@ -44,7 +44,7 @@ UFO_FIRE_RATE_SMALL = 0.55
 UFO_BULLET_SPEED = 360.0
 UFO_BULLET_TTL = 1.3
 
-# Mira: pequena mais precisa, grande mais "burra".
+# Aim: small UFO is precise, big UFO is inaccurate.
 UFO_AIM_JITTER_DEG_BIG = 28.0
 UFO_AIM_JITTER_DEG_SMALL = 6.0
 UFO_BIG_MISS_CHANCE = 0.35
@@ -54,8 +54,8 @@ BLACK = (0, 0, 0)
 
 RANDOM_SEED = None
 
-# Paths (funcionam de qualquer diretório de execução).
-# `config.py` fica em `core/`, então subimos um nível para a raiz.
+# Paths (work from any execution directory).
+# config.py lives in core/, so we go one level up to the project root.
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SOUND_PATH = os.path.join(BASE_DIR, "assets", "sounds")
 

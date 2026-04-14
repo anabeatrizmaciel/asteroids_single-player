@@ -1,4 +1,4 @@
-"""Sistemas do jogo (World, colisões, waves, score)."""
+"""Game systems (World, collisions, waves, score)."""
 
 import math
 from random import uniform
@@ -15,11 +15,11 @@ PlayerId = int
 
 
 class World:
-    """Estado do mundo + regras do jogo.
+    """World state and game rules.
 
     Multiplayer-ready:
-    - World recebe comandos por player_id.
-    - World gera eventos (strings) para o cliente (sons/efeitos).
+    - World receives commands indexed by player_id.
+    - World generates events (strings) for the client (sounds/effects).
     """
 
     def __init__(self) -> None:
@@ -45,7 +45,7 @@ class World:
         self.events.clear()
 
     def reset(self) -> None:
-        """Reinicia o mundo (usado pelo Game Over)."""
+        """Reset the world (used on Game Over)."""
         self.__init__()
 
     def spawn_player(self, player_id: PlayerId) -> None:
@@ -207,11 +207,11 @@ class World:
                     self.events.append("ship_explosion")
 
     def _ufo_vs_asteroids(self) -> None:
-        """UFO colidiu com asteroide.
+        """UFO collided with asteroid.
 
-        - UFO se destrói.
-        - Asteroide se comporta como se tivesse tomado um tiro, mas
-          sem pontuar.
+        - UFO is destroyed.
+        - Asteroid splits as if it were hit by a bullet, but
+          without adding score.
         """
         for ufo in list(self.ufos):
             for ast in list(self.asteroids):
@@ -250,9 +250,9 @@ class World:
         ast: Asteroid,
         add_score: bool = True,
     ) -> None:
-        """Divide ou destrói asteroide.
+        """Split or destroy an asteroid.
 
-        add_score=False é usado quando a UFO colide com asteroide.
+        add_score=False is used when a UFO collides with an asteroid.
         """
         if add_score:
             self.score += C.AST_SIZES[ast.size]["score"]

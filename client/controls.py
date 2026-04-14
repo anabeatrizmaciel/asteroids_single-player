@@ -1,4 +1,4 @@
-"""Leitura de input local e conversão para PlayerCommand."""
+"""Local input reading and conversion to PlayerCommand."""
 
 import pygame as pg
 
@@ -6,7 +6,7 @@ from core.commands import PlayerCommand
 
 
 class InputMapper:
-    """Converte teclado + eventos em PlayerCommand."""
+    """Converts keyboard input and events into PlayerCommand."""
 
     def __init__(self) -> None:
         self._shoot_pressed = False

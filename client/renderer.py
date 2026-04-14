@@ -1,4 +1,4 @@
-"""Renderização do cliente (pygame)."""
+"""Client-side rendering (pygame)."""
 
 import pygame as pg
 
@@ -7,7 +7,7 @@ from core.entities import Asteroid, Bullet, Ship, UFO
 
 
 class Renderer:
-    """Desenha cenas e entidades sem acoplar regras no Game."""
+    """Draws scenes and entities without coupling game rules to Game."""
 
     def __init__(
         self,
@@ -59,7 +59,7 @@ class Renderer:
         )
         self._draw_text(
             self.font,
-            "Pressione qualquer tecla",
+            "Press any key",
             self.config.WIDTH // 2 - 170,
             350,
         )
@@ -73,7 +73,7 @@ class Renderer:
         )
         self._draw_text(
             self.font,
-            "Pressione qualquer tecla",
+            "Press any key",
             self.config.WIDTH // 2 - 170,
             340,
         )

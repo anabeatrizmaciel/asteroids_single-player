@@ -1,128 +1,128 @@
 # ASTEROIDS -- DEVELOPMENT_WORKFLOW.md
 
-## Fluxo de Desenvolvimento via Pull Requests
+## Development Workflow via Pull Requests
 
-**Versao:** 1.0
-**Data:** 14/04/2026
+**Version:** 1.0
+**Date:** 2026-04-14
 
-## 1. Objetivo
+## 1. Purpose
 
-Guiar o desenvolvimento do Asteroids por meio de PRs curtos, seguros e testáveis, garantindo qualidade técnica e rastreabilidade.
+Guide Asteroids development through short, safe, and testable PRs, ensuring technical quality and traceability.
 
-## 2. Princípios
+## 2. Principles
 
-1. Nada entra em `main` sem Pull Request.
-2. Cada PR deve ter escopo pequeno, coeso e validável.
-3. O domínio (`core/`) é isolado e não deve importar `client/`.
-4. O projeto deve continuar funcional ao final de cada PR.
+1. Nothing enters `main` without a Pull Request.
+2. Each PR must have a small, cohesive, and validatable scope.
+3. The domain (`core/`) is isolated and must not import `client/`.
+4. The project must remain functional at the end of each PR.
 
-## 3. Padrão de Branch e Commits
+## 3. Branch and Commit Standards
 
-### 3.1 Nomenclatura de branch
+### 3.1 Branch naming
 
-- `feat/<descricao-curta>` -- nova funcionalidade
-- `fix/<descricao-curta>` -- correção de bug
-- `chore/<descricao-curta>` -- manutenção, docs, refatoração
+- `feat/<short-description>` -- new feature
+- `fix/<short-description>` -- bug fix
+- `chore/<short-description>` -- maintenance, docs, refactoring
 
-Exemplos:
+Examples:
 - `feat/multiplayer-lobby`
 - `fix/hyperspace-spawn-inside-asteroid`
 - `chore/extract-collision-manager`
 
 ### 3.2 Commits
 
-Mensagens no formato:
-- `feat: descricao objetiva`
-- `fix: correcao especifica`
-- `chore: alteracao estrutural`
+Message format:
+- `feat: objective description`
+- `fix: specific fix`
+- `chore: structural change`
 
-Commits pequenos, descritivos e alinhados ao objetivo do PR.
+Commits should be small, descriptive, and aligned with the PR objective.
 
-## 4. Fluxo Operacional
+## 4. Operational Flow
 
-### 4.1 Preparação
+### 4.1 Preparation
 
 ```bash
 git checkout main
 git pull
-git checkout -b feat/nome-da-feature
+git checkout -b feat/feature-name
 ```
 
-### 4.2 Desenvolvimento
+### 4.2 Development
 
-- Implementar apenas o escopo definido do PR.
-- Preservar separação `core/` (lógica) e `client/` (apresentação).
-- Não introduzir dependências novas sem aprovação.
-- Centralizar constantes novas em `core/config.py`.
+- Implement only the scope defined for the PR.
+- Preserve the `core/` (logic) and `client/` (presentation) separation.
+- Do not introduce new dependencies without approval.
+- Centralize new constants in `core/config.py`.
 
-### 4.3 Validação local
+### 4.3 Local validation
 
 ```bash
 python main.py
 ```
 
-Testar manualmente:
-- Gameplay funciona (mover, atirar, colisões)
-- Menu e game over funcionam
-- Sons tocam corretamente
-- Nenhuma regressão visível
+Test manually:
+- Gameplay works (move, shoot, collisions)
+- Menu and game over work
+- Sounds play correctly
+- No visible regressions
 
-### 4.4 Publicação
+### 4.4 Publishing
 
 ```bash
-git add <arquivos-relevantes>
-git commit -m "feat: descricao objetiva"
-git push origin feat/nome-da-feature
+git add <relevant-files>
+git commit -m "feat: objective description"
+git push origin feat/feature-name
 ```
 
-## 5. Estrutura do Pull Request
+## 5. Pull Request Structure
 
-### 5.1 Título
+### 5.1 Title
 
-Formato: `feat: descrição objetiva` / `fix: correção` / `chore: alteração`
+Format: `feat: objective description` / `fix: fix description` / `chore: change description`
 
-### 5.2 Descrição
+### 5.2 Description
 
-Todo PR deve conter:
-- **Objetivo**: problema que o PR resolve
-- **O que foi implementado**: lista objetiva de mudanças
-- **Decisões técnicas**: justificativas quando relevante
-- **Como testar**: passos para validar a mudança
+Every PR must include:
+- **Objective**: problem the PR solves
+- **What was implemented**: objective list of changes
+- **Technical decisions**: justifications when relevant
+- **How to test**: steps to validate the change
 
-## 6. Checklist de Revisão
+## 6. Review Checklist
 
-### Arquitetura
-- [ ] `core/` não importa `client/`
-- [ ] Sem imports circulares
-- [ ] Constantes em `core/config.py`
+### Architecture
+- [ ] `core/` does not import `client/`
+- [ ] No circular imports
+- [ ] Constants in `core/config.py`
 
-### Qualidade
-- [ ] Código tipado (type hints)
-- [ ] Sem números mágicos fora de `config.py`
-- [ ] Funções coesas e legíveis
-- [ ] Sem overengineering
+### Quality
+- [ ] Typed code (type hints)
+- [ ] No magic numbers outside `config.py`
+- [ ] Cohesive and readable functions
+- [ ] No overengineering
 
-### Funcionalidade
-- [ ] Jogo roda sem erros (`python main.py`)
-- [ ] Gameplay funcional (mover, atirar, colisões)
-- [ ] Sem regressões visíveis
+### Functionality
+- [ ] Game runs without errors (`python main.py`)
+- [ ] Gameplay functional (move, shoot, collisions)
+- [ ] No visible regressions
 
-## 7. Sincronização Pós-Merge
+## 7. Post-Merge Sync
 
-Após PR aprovada e mergeada:
+After PR is approved and merged:
 
 ```bash
 git checkout main
 git pull
-git branch -d <branch-da-pr>
+git branch -d <pr-branch>
 git status
 ```
 
-Confirmar que o worktree está limpo.
+Confirm that the worktree is clean.
 
-## 8. Estratégia de PR Curto
+## 8. Short PR Strategy
 
-- Foco em **um objetivo principal** por PR
-- Evitar misturar refatoração com feature nova
-- Se crescer demais, dividir: `chore` → `feat` → `fix`
-- Preferir qualidade com simplicidade sobre velocidade
+- Focus on **one main objective** per PR
+- Avoid mixing refactoring with new features
+- If it grows too large, split: `chore` -> `feat` -> `fix`
+- Prefer quality with simplicity over speed

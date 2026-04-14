@@ -10,24 +10,18 @@ import sys
 import pygame as pg
 
 from core import config as C
+from core.scene import SceneState
 from client.audio import load_sounds
 from client.controls import InputMapper
 from client.renderer import Renderer
 from core.world import World
 
 
-class Scene:
-    """Represents a game screen state."""
-
-    def __init__(self, name: str) -> None:
-        self.name = name
-
-
 class Game:
     """Orchestrates input -> update -> draw."""
 
     def __init__(self) -> None:
-        pg.mixer.pre_init(44100, -16, 2, 512)
+        pg.mixer.pre_init(C.AUDIO_FREQUENCY, C.AUDIO_SIZE, C.AUDIO_CHANNELS, C.AUDIO_BUFFER)
         pg.init()
         pg.mixer.init()
 
@@ -37,15 +31,15 @@ class Game:
         self.clock = pg.time.Clock()
         self.running = True
 
-        self.font = pg.font.SysFont("consolas", 22)
-        self.big = pg.font.SysFont("consolas", 64)
+        self.font = pg.font.SysFont(C.FONT_NAME, C.FONT_SIZE_SMALL)
+        self.big = pg.font.SysFont(C.FONT_NAME, C.FONT_SIZE_LARGE)
         self.renderer = Renderer(
             self.screen,
             config=C,
             fonts={"font": self.font, "big": self.big},
         )
 
-        self.scene = Scene("menu")
+        self.scene = SceneState.MENU
         self.world = World()
         self.input_mapper = InputMapper()
 
@@ -74,22 +68,22 @@ class Game:
             if event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
                 self._quit()
 
-            if self.scene.name == "menu":
+            if self.scene == SceneState.MENU:
                 if event.type == pg.KEYDOWN:
-                    self.scene = Scene("play")
+                    self.scene = SceneState.PLAY
                 continue
 
-            if self.scene.name == "game_over":
+            if self.scene == SceneState.GAME_OVER:
                 if event.type == pg.KEYDOWN:
                     self.world.reset()
-                    self.scene = Scene("play")
+                    self.scene = SceneState.PLAY
                 continue
 
-            if self.scene.name == "play":
+            if self.scene == SceneState.PLAY:
                 self.input_mapper.handle_event(event)
 
     def _update(self, dt: float) -> None:
-        if self.scene.name != "play":
+        if self.scene != SceneState.PLAY:
             return
 
         keys = pg.key.get_pressed()
@@ -100,7 +94,7 @@ class Game:
 
         if self.world.game_over:
             self._stop_loops()
-            self.scene = Scene("game_over")
+            self.scene = SceneState.GAME_OVER
             return
 
         self._update_thrust(cmd.thrust)
@@ -110,12 +104,12 @@ class Game:
     def _draw(self) -> None:
         self.renderer.clear()
 
-        if self.scene.name == "menu":
+        if self.scene == SceneState.MENU:
             self.renderer.draw_menu()
             pg.display.flip()
             return
 
-        if self.scene.name == "game_over":
+        if self.scene == SceneState.GAME_OVER:
             self.renderer.draw_game_over()
             pg.display.flip()
             return
@@ -125,7 +119,7 @@ class Game:
             self.world.score,
             self.world.lives,
             self.world.wave,
-            self.scene.name,
+            self.scene,
         )
         pg.display.flip()
 

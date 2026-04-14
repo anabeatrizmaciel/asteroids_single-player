@@ -61,14 +61,14 @@ class World:
 
     def start_wave(self) -> None:
         self.wave += 1
-        count = 3 + self.wave
+        count = C.WAVE_BASE_COUNT + self.wave
 
         ship = self.get_ship(C.LOCAL_PLAYER_ID)
         ship_pos = ship.pos if ship else Vec(C.WIDTH / 2, C.HEIGHT / 2)
 
         for _ in range(count):
             pos = rand_edge_pos()
-            while (pos - ship_pos).length() < 150:
+            while (pos - ship_pos).length() < C.AST_MIN_SPAWN_DIST:
                 pos = rand_edge_pos()
 
             ang = uniform(0, math.tau)
@@ -265,7 +265,7 @@ class World:
 
         for new_size in split:
             dirv = rand_unit_vec()
-            speed = uniform(C.AST_VEL_MIN, C.AST_VEL_MAX) * 1.2
+            speed = uniform(C.AST_VEL_MIN, C.AST_VEL_MAX) * C.AST_SPLIT_SPEED_MULT
             self.spawn_asteroid(pos, dirv * speed, new_size)
 
     def _ship_die(self, ship: Ship) -> None:

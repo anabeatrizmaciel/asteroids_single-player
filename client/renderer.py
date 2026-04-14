@@ -4,6 +4,7 @@ import pygame as pg
 
 from core import config as C
 from core.entities import Asteroid, Bullet, Ship, UFO
+from core.scene import SceneState
 
 
 class Renderer:
@@ -41,9 +42,9 @@ class Renderer:
         score: int,
         lives: int,
         wave: int,
-        state: str,
+        state: SceneState,
     ) -> None:
-        if state != "play":
+        if state != SceneState.PLAY:
             return
 
         text = f"SCORE {score:06d}   LIVES {lives}   WAVE {wave}"

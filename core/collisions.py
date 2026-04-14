@@ -105,7 +105,7 @@ class CollisionManager:
                         ufos.remove(ufo)
 
                     result.events.append("ship_explosion")
-                    self._split_asteroid(ast, add_score=False, result=result)
+                    self._split_asteroid(ast, result=result)
                     break
 
     def _ship_vs_asteroids(

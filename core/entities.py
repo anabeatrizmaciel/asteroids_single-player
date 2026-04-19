@@ -336,3 +336,23 @@ class UFO(pg.sprite.Sprite):
         self.cool = float(rate)
 
         return Bullet(UFO_BULLET_OWNER, self.pos, vel, ttl=ttl)
+
+
+class BlackHole(pg.sprite.Sprite):
+    """Black hole that attracts the ship to its center."""
+
+    def __init__(self, pos: Vec) -> None:
+        super().__init__()
+        self.pos = Vec(pos)
+        self.r = int(C.BLACK_HOLE_RADIUS)
+        self.ttl = uniform(C.BLACK_HOLE_TTL_MIN, C.BLACK_HOLE_TTL_MAX)
+        self.age = 0.0  # elapsed seconds — used by renderer for pulse animation
+        self.rect = pg.Rect(0, 0, self.r * 2, self.r * 2)
+
+    def update(self, dt: float) -> None:
+        self.age += dt
+        self.ttl -= dt
+        if self.ttl <= 0.0:
+            self.kill()
+            return
+        self.rect.center = (int(self.pos.x), int(self.pos.y))

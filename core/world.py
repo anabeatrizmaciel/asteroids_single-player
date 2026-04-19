@@ -9,7 +9,7 @@ import pygame as pg
 from core import config as C
 from core.collisions import CollisionManager
 from core.commands import PlayerCommand
-from core.entities import Asteroid, FreezePickup, Ship, UFO
+from core.entities import Asteroid, FreezePickup, BlackHole, Ship, UFO
 from core.utils import Vec, rand_edge_pos
 
 PlayerId = int
@@ -29,6 +29,7 @@ class World:
         self.asteroids = pg.sprite.Group()
         self.ufos = pg.sprite.Group()
         self.freezes = pg.sprite.Group()    # coletáveis de congelamento ativos
+        self.black_holes = pg.sprite.Group()
         self.all_sprites = pg.sprite.Group()
 
         self.scores: Dict[PlayerId, int] = {}
@@ -37,6 +38,7 @@ class World:
         self.wave_cool = float(C.WAVE_DELAY)
         self.ufo_timer = float(C.UFO_SPAWN_EVERY)
         self.freeze_timer = 0.0             # segundos restantes de congelamento
+        self.bh_timer = float(C.BLACK_HOLE_SPAWN_EVERY)
 
         self.events: list[str] = []
         self._collision_mgr = CollisionManager()
@@ -101,7 +103,6 @@ class World:
         target = self._get_nearest_ship_pos(pos)
         ufo = UFO(pos, small, target_pos=target)
         self.ufos.add(ufo)
-
         self.all_sprites.add(ufo)
 
     def update(
@@ -115,6 +116,7 @@ class World:
             return
 
         self._apply_commands(dt, commands_by_player_id)
+        self._apply_black_hole_gravity(dt)
 
         # Asteroides recebem dt=0 enquanto o congelamento estiver ativo,
         # mantendo sua posição sem alterar a lógica de nenhuma outra entidade.
@@ -127,6 +129,7 @@ class World:
 
         self._update_ufos(dt)
         self._update_timers(dt)
+        self._update_bh_timer(dt)
         self._handle_collisions()
         self._maybe_start_next_wave(dt)
 
@@ -151,6 +154,19 @@ class World:
                 self.bullets.add(bullet)
                 self.all_sprites.add(bullet)
                 self.events.append("player_shoot")
+
+    def _apply_black_hole_gravity(self, dt: float) -> None:
+        """Pull every ship toward each active black hole.
+        
+        Force magnitude follows an inverse-square law:
+            F = G / d^2
+        """
+        for bh in self.black_holes:
+            for ship in self.ships.values():
+                delta = bh.pos - ship.pos
+                dist = max(delta.length(), C.BLACK_HOLE_GRAVITY_MIN_DIST)
+                force = C.BLACK_HOLE_GRAVITY / (dist * dist)
+                ship.vel += delta.normalize() * force * dt
 
     def _update_ufos(self, dt: float) -> None:
         for ufo in list(self.ufos):
@@ -192,6 +208,35 @@ class World:
             self.spawn_ufo()
             self.ufo_timer = float(C.UFO_SPAWN_EVERY)
 
+    def _update_bh_timer(self, dt: float) -> None:
+        """Decrease the black hole spawn timer and trigger spawn."""
+        self.bh_timer -= dt
+        if self.bh_timer <= 0.0:
+            self._spawn_black_hole()
+            self.bh_timer = float(C.BLACK_HOLE_SPAWN_EVERY)
+
+    def _spawn_black_hole(self) -> None:
+        """Spawn a black hole at a random interior position far from all ships."""
+        margin = C.BLACK_HOLE_RADIUS * 3
+        ship_positions = [s.pos for s in self.ships.values()]
+
+        pos = Vec(
+            uniform(margin, C.WIDTH - margin),
+            uniform(margin, C.HEIGHT - margin),
+        )
+        while any(
+            (pos - sp).length() < C.BLACK_HOLE_MIN_SPAWN_DIST
+            for sp in ship_positions
+        ):
+            pos = Vec(
+                uniform(margin, C.WIDTH - margin),
+                uniform(margin, C.HEIGHT - margin),
+            )
+
+        bh = BlackHole(pos)
+        self.black_holes.add(bh)
+        self.all_sprites.add(bh)
+
     def _maybe_start_next_wave(self, dt: float) -> None:
         if self.asteroids:
             return
@@ -205,6 +250,7 @@ class World:
         result = self._collision_mgr.resolve(
             self.ships, self.bullets, self.asteroids, self.ufos,
             freezes=self.freezes,   # passa os pickups para detecção de colisão
+            self.black_holes,
         )
 
         self.events.extend(result.events)
@@ -228,6 +274,12 @@ class World:
             ship = self.get_ship(player_id)
             if ship is not None:
                 self._ship_die(ship)
+
+        for player_id in result.instant_kills:
+            if player_id in self.lives:
+                self.lives[player_id] = 0
+            self.events.append("ship_explosion")
+            self.game_over = True
 
     def _ship_die(self, ship: Ship) -> None:
         pid = ship.player_id

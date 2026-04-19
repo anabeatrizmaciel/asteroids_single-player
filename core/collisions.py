@@ -6,7 +6,7 @@ from random import random, uniform
 import pygame as pg
 
 from core import config as C
-from core.entities import Asteroid, Bullet, FreezePickup, Ship, UFO, UFO_BULLET_OWNER, PlayerId
+from core.entities import Asteroid, BlackHole, Bullet, FreezePickup, Ship, UFO, UFO_BULLET_OWNER, PlayerId
 from core.utils import Vec, rand_unit_vec
 
 
@@ -29,6 +29,7 @@ class CollisionResult:
     asteroids_to_spawn: list[tuple[Vec, Vec, str]] = field(default_factory=list)
     pickups_to_spawn: list[Vec] = field(default_factory=list)   # posições para spawn de pickups
     freeze_activated: bool = False                               # True quando pickup coletado
+    instant_kills: list[PlayerId] = field(default_factory=list)
 
 
 class CollisionManager:
@@ -40,6 +41,7 @@ class CollisionManager:
         bullets: pg.sprite.Group,
         asteroids: pg.sprite.Group,
         ufos: pg.sprite.Group,
+        black_holes: pg.sprite.Group,
         freezes: pg.sprite.Group | None = None,
     ) -> CollisionResult:
         """Executa todos os testes de colisão e retorna o resultado agregado.
@@ -55,6 +57,7 @@ class CollisionManager:
         # verifica se a nave tocou algum coletável de congelamento
         if freezes is not None:
             self._ship_vs_freeze_pickups(ships, freezes, result)
+        self._ship_vs_black_holes(ships, black_holes, result)
         return result
 
     def _bullets_vs_asteroids(
@@ -176,6 +179,19 @@ class CollisionManager:
                     result.freeze_activated = True
                     result.events.append("freeze_activated")
                     return          # um pickup por frame é suficiente
+
+    def _ship_vs_black_holes(
+        self,
+        ships: dict[PlayerId, Ship],
+        black_holes: pg.sprite.Group,
+        result: CollisionResult,
+    ) -> None:
+        """Instant Game Over when a ship touches a black hole."""
+        for ship in ships.values():
+            for bh in black_holes:
+                if (bh.pos - ship.pos).length() < (bh.r + ship.r):
+                    result.instant_kills.append(ship.player_id)
+                    return
 
     def _split_asteroid(
         self,

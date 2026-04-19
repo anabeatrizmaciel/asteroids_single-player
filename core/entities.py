@@ -346,7 +346,7 @@ class BlackHole(pg.sprite.Sprite):
         self.pos = Vec(pos)
         self.r = int(C.BLACK_HOLE_RADIUS)
         self.ttl = uniform(C.BLACK_HOLE_TTL_MIN, C.BLACK_HOLE_TTL_MAX)
-        self.age = 0.0  # elapsed seconds — used by renderer for pulse animation
+        self.age = 0.0
         self.rect = pg.Rect(0, 0, self.r * 2, self.r * 2)
 
     def update(self, dt: float) -> None:

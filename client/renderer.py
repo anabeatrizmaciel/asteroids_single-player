@@ -3,7 +3,7 @@
 import pygame as pg
 
 from core import config as C
-from core.entities import Asteroid, Bullet, Ship, UFO
+from core.entities import Asteroid, Bullet, Ship, SpecialAsteroid, UFO
 from core.scene import SceneState
 
 
@@ -24,6 +24,7 @@ class Renderer:
 
         self._draw_dispatch: dict[type, callable] = {
             Bullet: self._draw_bullet,
+            SpecialAsteroid: self._draw_special_asteroid,
             Asteroid: self._draw_asteroid,
             Ship: self._draw_ship,
             UFO: self._draw_ufo,
@@ -108,6 +109,16 @@ class Renderer:
             py = int(asteroid.pos.y + point.y)
             points.append((px, py))
         pg.draw.polygon(self.screen, self.config.WHITE, points, width=1)
+
+    def _draw_special_asteroid(self, asteroid: SpecialAsteroid) -> None:
+        points = []
+        for point in asteroid.poly:
+            px = int(asteroid.pos.x + point.x)
+            py = int(asteroid.pos.y + point.y)
+            points.append((px, py))
+        pg.draw.polygon(self.screen, self.config.GOLD, points, width=1)
+        center = (int(asteroid.pos.x), int(asteroid.pos.y))
+        pg.draw.circle(self.screen, self.config.GOLD, center, 2)
 
     def _draw_ship(self, ship: Ship) -> None:
         p1, p2, p3 = ship.ship_points()

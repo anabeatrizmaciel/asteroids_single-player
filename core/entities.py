@@ -80,6 +80,10 @@ class Asteroid(pg.sprite.Sprite):
         self.rect.center = (int(self.pos.x), int(self.pos.y))
 
 
+class SpecialAsteroid(Asteroid):
+    pass
+
+
 class Ship(pg.sprite.Sprite):
     """Ship controlled by command (does not read keyboard)."""
 

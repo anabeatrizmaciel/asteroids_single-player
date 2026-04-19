@@ -1,7 +1,7 @@
 """Game systems (World, waves, score)."""
 
 import math
-from random import uniform
+from random import uniform as rand_uniform
 from typing import Dict
 
 import pygame as pg
@@ -9,7 +9,7 @@ import pygame as pg
 from core import config as C
 from core.collisions import CollisionManager
 from core.commands import PlayerCommand
-from core.entities import Asteroid, Ship, UFO
+from core.entities import Asteroid, Ship, SpecialAsteroid, UFO
 from core.utils import Vec, rand_edge_pos
 
 PlayerId = int
@@ -77,18 +77,28 @@ class World:
             ):
                 pos = rand_edge_pos()
 
-            ang = uniform(0, math.tau)
-            speed = uniform(C.AST_VEL_MIN, C.AST_VEL_MAX)
+            ang = rand_uniform(0, math.tau)
+            speed = rand_uniform(C.AST_VEL_MIN, C.AST_VEL_MAX)
             vel = Vec(math.cos(ang), math.sin(ang)) * speed
-            self.spawn_asteroid(pos, vel, "L")
+            special = rand_uniform(0, 1) < C.SPECIAL_AST_CHANCE
+            self.spawn_asteroid(pos, vel, "L", special=special)
 
-    def spawn_asteroid(self, pos: Vec, vel: Vec, size: str) -> None:
-        ast = Asteroid(pos, vel, size)
+    def spawn_asteroid(
+        self,
+        pos: Vec,
+        vel: Vec,
+        size: str,
+        special: bool = False,
+    ) -> None:
+        if special and size == "L":
+            ast: Asteroid = SpecialAsteroid(pos, vel, size)
+        else:
+            ast = Asteroid(pos, vel, size)
         self.asteroids.add(ast)
         self.all_sprites.add(ast)
 
     def spawn_ufo(self) -> None:
-        small = uniform(0, 1) < 0.5
+        small = rand_uniform(0, 1) < 0.5
         pos = rand_edge_pos()
         target = self._get_nearest_ship_pos(pos)
         ufo = UFO(pos, small, target_pos=target)

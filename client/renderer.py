@@ -1,9 +1,11 @@
-"""Client-side rendering (pygame)."""
+"""Renderização do lado cliente (pygame)."""
+
+import math
 
 import pygame as pg
 
 from core import config as C
-from core.entities import Asteroid, Bullet, Ship, UFO
+from core.entities import Asteroid, Bullet, FreezePickup, Ship, UFO
 from core.scene import SceneState
 
 
@@ -27,6 +29,7 @@ class Renderer:
             Asteroid: self._draw_asteroid,
             Ship: self._draw_ship,
             UFO: self._draw_ufo,
+            FreezePickup: self._draw_freeze_pickup,  # coletável de congelamento
         }
 
     def clear(self) -> None:
@@ -45,13 +48,21 @@ class Renderer:
         lives: int,
         wave: int,
         state: SceneState,
+        freeze_timer: float = 0.0,
     ) -> None:
+        """Desenha o HUD com pontuação, vidas, wave e (se ativo) timer de freeze."""
         if state != SceneState.PLAY:
             return
 
         text = f"SCORE {score:06d}   LIVES {lives}   WAVE {wave}"
         label = self.font.render(text, True, self.config.WHITE)
         self.screen.blit(label, (10, 10))
+
+        # exibe o contador de congelamento enquanto estiver ativo
+        if freeze_timer > 0.0:
+            freeze_text = f"FREEZE {freeze_timer:.1f}s"
+            freeze_label = self.font.render(freeze_text, True, C.FREEZE_COLOR)
+            self.screen.blit(freeze_label, (10, 36))
 
     def draw_menu(self) -> None:
         self._draw_text(
@@ -139,3 +150,30 @@ class Renderer:
         cup = pg.Rect(0, 0, int(width * 0.5), int(height * 0.7))
         cup.center = (int(ufo.pos.x), int(ufo.pos.y - height * 0.3))
         pg.draw.ellipse(self.screen, self.config.WHITE, cup, width=1)
+
+    def _draw_freeze_pickup(self, pickup: FreezePickup) -> None:
+        """Desenha um cristal de gelo (floco de neve simplificado) na tela.
+
+        O floco é formado por 6 linhas saindo do centro em ângulos de 60°,
+        com duas hastes menores cruzadas em cada extremidade.
+        """
+        cx, cy = int(pickup.pos.x), int(pickup.pos.y)
+        r = pickup.r
+        cor = C.FREEZE_COLOR
+
+        # 6 eixos do floco (0°, 60°, 120°, ... 300°)
+        for i in range(6):
+            ang = math.radians(i * 60)
+            ex = cx + int(r * math.cos(ang))
+            ey = cy + int(r * math.sin(ang))
+            # linha principal do eixo
+            pg.draw.line(self.screen, cor, (cx, cy), (ex, ey), 1)
+
+            # hastes laterais no meio do eixo
+            mid_x = cx + int((r * 0.5) * math.cos(ang))
+            mid_y = cy + int((r * 0.5) * math.sin(ang))
+            for delta in (-60, 60):
+                side_ang = math.radians(i * 60 + delta)
+                sx = mid_x + int((r * 0.3) * math.cos(side_ang))
+                sy = mid_y + int((r * 0.3) * math.sin(side_ang))
+                pg.draw.line(self.screen, cor, (mid_x, mid_y), (sx, sy), 1)

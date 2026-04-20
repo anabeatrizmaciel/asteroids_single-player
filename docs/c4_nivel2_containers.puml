@@ -1,0 +1,38 @@
+@startuml C4_Nivel2_Containers
+' Diagrama C4 - Nível 2: Containers
+' Referência: https://c4model.com
+'
+' O jogo é uma aplicação monolítica: core/ e client/ são módulos
+' do MESMO processo Python — logo são Componentes (Nível 3), não Containers.
+' No Nível 2 existem apenas dois containers:
+'   1. A aplicação desktop (processo Python/Pygame)
+'   2. Os arquivos de áudio em disco (sistema de arquivos)
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Diagrama de Containers — Asteroids Single Player (C4 Nível 2)
+
+' =====================================================================
+' Ator externo
+' =====================================================================
+Person(jogador, "Jogador", "Interage com o jogo\nvia teclado e visualiza\na tela")
+
+' =====================================================================
+' Fronteira do sistema
+' =====================================================================
+System_Boundary(sistema, "Asteroids Single Player") {
+
+    Container(app, "Aplicação do Jogo", "Python 3 / Pygame", "Processo único e monolítico.\nGerencia o loop principal (60 FPS),\nregras do jogo, colisões, pontuação,\nmecânicas (incluindo Freeze Time),\nrenderização e entrada do jogador.")
+
+    ContainerDb(assets, "Assets de Áudio", "Arquivos WAV\n(Sistema de Arquivos)", "Sons carregados na\ninicialização da aplicação:\ntiros, explosões, sirenes\nde UFO e empuxo da nave.\n\nPasta: assets/sounds/")
+}
+
+' =====================================================================
+' Relacionamentos
+' =====================================================================
+Rel(jogador, app, "Joga via teclado\ne vê a tela")
+Rel(app, assets, "Lê arquivos .wav\nna inicialização\n(pygame.mixer)")
+
+@enduml

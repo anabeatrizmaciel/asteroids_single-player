@@ -167,6 +167,29 @@ class Ship(pg.sprite.Sprite):
         return p1, p2, p3
 
 
+class FreezePickup(pg.sprite.Sprite):
+    """Coletável que aparece quando um asteroide é destruído.
+
+    Ao ser tocado pela nave, congela o movimento de todos os asteroides
+    por FREEZE_DURATION segundos. Desaparece sozinho após FREEZE_PICKUP_TTL.
+    """
+
+    def __init__(self, pos: Vec) -> None:
+        super().__init__()
+        self.pos = Vec(pos)
+        self.ttl = float(C.FREEZE_PICKUP_TTL)   # contador de tempo de vida
+        self.r = int(C.FREEZE_PICKUP_RADIUS)
+        self.rect = pg.Rect(0, 0, self.r * 2, self.r * 2)
+
+    def update(self, dt: float) -> None:
+        """Decrementa o TTL e se remove ao expirar."""
+        self.ttl -= dt
+        if self.ttl <= 0.0:
+            self.kill()
+            return
+        self.rect.center = (int(self.pos.x), int(self.pos.y))
+
+
 class UFO(pg.sprite.Sprite):
     """UFO with two movement behaviors and shooting."""
 

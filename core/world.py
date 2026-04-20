@@ -9,7 +9,7 @@ import pygame as pg
 from core import config as C
 from core.collisions import CollisionManager
 from core.commands import PlayerCommand
-from core.entities import Asteroid, Ship, SpecialAsteroid, UFO
+from core.entities import Asteroid, PowerUp, Ship, SpecialAsteroid, UFO
 from core.utils import Vec, rand_edge_pos
 
 PlayerId = int
@@ -28,6 +28,7 @@ class World:
         self.bullets = pg.sprite.Group()
         self.asteroids = pg.sprite.Group()
         self.ufos = pg.sprite.Group()
+        self.powerups = pg.sprite.Group()
         self.all_sprites = pg.sprite.Group()
 
         self.scores: Dict[PlayerId, int] = {}
@@ -90,12 +91,17 @@ class World:
         size: str,
         special: bool = False,
     ) -> None:
-        if special and size == "L":
+        if special:
             ast: Asteroid = SpecialAsteroid(pos, vel, size)
         else:
             ast = Asteroid(pos, vel, size)
         self.asteroids.add(ast)
         self.all_sprites.add(ast)
+
+    def spawn_powerup(self, pos: Vec, kind: str) -> None:
+        pup = PowerUp(pos, kind)
+        self.powerups.add(pup)
+        self.all_sprites.add(pup)
 
     def spawn_ufo(self) -> None:
         small = rand_uniform(0, 1) < 0.5
@@ -191,7 +197,11 @@ class World:
 
     def _handle_collisions(self) -> None:
         result = self._collision_mgr.resolve(
-            self.ships, self.bullets, self.asteroids, self.ufos,
+            self.ships,
+            self.bullets,
+            self.asteroids,
+            self.ufos,
+            self.powerups,
         )
 
         self.events.extend(result.events)
@@ -200,8 +210,15 @@ class World:
             if player_id in self.scores:
                 self.scores[player_id] += delta
 
-        for pos, vel, size in result.asteroids_to_spawn:
-            self.spawn_asteroid(pos, vel, size)
+        for player_id, delta in result.lives_deltas.items():
+            if player_id in self.lives:
+                self.lives[player_id] += delta
+
+        for pos, vel, size, special in result.asteroids_to_spawn:
+            self.spawn_asteroid(pos, vel, size, special=special)
+
+        for pos, kind in result.powerups_to_spawn:
+            self.spawn_powerup(pos, kind)
 
         for player_id in result.ship_deaths:
             ship = self.get_ship(player_id)

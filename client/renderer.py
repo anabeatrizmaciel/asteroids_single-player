@@ -3,12 +3,11 @@
 import pygame as pg
 
 from core import config as C
-from core.entities import Asteroid, Bullet, Ship, SpecialAsteroid, UFO
+from core.entities import Asteroid, Bullet, PowerUp, Ship, SpecialAsteroid, UFO
 from core.scene import SceneState
 
 
 class Renderer:
-    """Draws scenes and entities without coupling game rules to Game."""
 
     def __init__(
         self,
@@ -26,6 +25,7 @@ class Renderer:
             Bullet: self._draw_bullet,
             SpecialAsteroid: self._draw_special_asteroid,
             Asteroid: self._draw_asteroid,
+            PowerUp: self._draw_powerup,
             Ship: self._draw_ship,
             UFO: self._draw_ufo,
         }
@@ -119,6 +119,16 @@ class Renderer:
         pg.draw.polygon(self.screen, self.config.GOLD, points, width=1)
         center = (int(asteroid.pos.x), int(asteroid.pos.y))
         pg.draw.circle(self.screen, self.config.GOLD, center, 2)
+
+    def _draw_powerup(self, pup: PowerUp) -> None:
+        if pup.ttl <= self.config.POWERUP_BLINK_THRESHOLD:
+            if int(pup.phase * self.config.POWERUP_BLINK_HZ * 2.0) % 2 != 0:
+                return
+        cx = int(pup.pos.x)
+        cy = int(pup.pos.y)
+        r = pup.r
+        points = [(cx, cy - r), (cx + r, cy), (cx, cy + r), (cx - r, cy)]
+        pg.draw.polygon(self.screen, self.config.GOLD, points, width=1)
 
     def _draw_ship(self, ship: Ship) -> None:
         p1, p2, p3 = ship.ship_points()

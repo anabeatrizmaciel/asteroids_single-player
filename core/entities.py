@@ -84,6 +84,26 @@ class SpecialAsteroid(Asteroid):
     pass
 
 
+class PowerUp(pg.sprite.Sprite):
+    def __init__(self, pos: Vec, kind: str) -> None:
+        super().__init__()
+        self.pos = Vec(pos)
+        self.vel = Vec(0, 0)
+        self.kind = kind
+        self.ttl = float(C.POWERUP_TTL)
+        self.phase = 0.0
+        self.r = int(C.POWERUP_RADIUS)
+        self.rect = pg.Rect(0, 0, self.r * 2, self.r * 2)
+
+    def update(self, dt: float) -> None:
+        self.phase += dt
+        self.ttl -= dt
+        if self.ttl <= 0.0:
+            self.kill()
+            return
+        self.rect.center = (int(self.pos.x), int(self.pos.y))
+
+
 class Ship(pg.sprite.Sprite):
     """Ship controlled by command (does not read keyboard)."""
 

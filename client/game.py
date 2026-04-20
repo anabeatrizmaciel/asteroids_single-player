@@ -116,6 +116,7 @@ class Game:
             self.world.lives.get(C.LOCAL_PLAYER_ID, 0),
             self.world.wave,
             self.scene,
+            freeze_timer=self.world.freeze_timer,   # exibe contador de freeze
         )
         pg.display.flip()
 

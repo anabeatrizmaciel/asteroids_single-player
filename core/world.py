@@ -249,8 +249,8 @@ class World:
     def _handle_collisions(self) -> None:
         result = self._collision_mgr.resolve(
             self.ships, self.bullets, self.asteroids, self.ufos,
-            freezes=self.freezes,   # passa os pickups para detecção de colisão
             self.black_holes,
+            freezes=self.freezes,   # passa os pickups para detecção de colisão
         )
 
         self.events.extend(result.events)

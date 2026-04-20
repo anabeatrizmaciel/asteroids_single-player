@@ -58,6 +58,13 @@ UFO_AIM_JITTER_DEG_BIG = 28.0
 UFO_AIM_JITTER_DEG_SMALL = 6.0
 UFO_BIG_MISS_CHANCE = 0.35
 
+# --- Freeze Time (coletável que para os asteroides) ---
+FREEZE_PICKUP_RADIUS = 12       # raio do coletável em pixels
+FREEZE_PICKUP_TTL = 8.0         # segundos até desaparecer se não coletado
+FREEZE_DURATION = 5.0           # duração do efeito de congelamento em segundos
+FREEZE_SPAWN_CHANCE = 0.45      # probabilidade de spawnar ao destruir asteroide
+FREEZE_COLOR = (0, 200, 255)    # azul gelo (ciano)
+
 WHITE = (240, 240, 240)
 BLACK = (0, 0, 0)
 

@@ -49,7 +49,8 @@ Ao destruir asteroides, um coletável azul aparece na tela. Tocá-lo com a nave 
 Um buraco negro aparece em um ponto aleatório e dura entre 5 a 10 segundos. Afeta a movimentação da nave do jogador, puxando em sua direção com força variável conforme a distância. Caso o jogador encoste no buraco negro, é fim de jogo.
 
 ### 5. Power-Ups
-Itens coletáveis que concedem bônus temporários ao jogador, como vida extra ou disparo mais rápido.
+Itens coletáveis que concedem bônus ao jogador.
+ Nessa mecânica, ao destruir com tiro um fragmento especial S, surge um power-up de vida extra no local; se a nave coletar a tempo, ganha +1 vida.
 
 ---
 
@@ -89,7 +90,9 @@ Itens coletáveis que concedem bônus temporários ao jogador, como vida extra o
 │   ├── 📄 scene.py                 # enum de estados de cena
 │   └── 📄 utils.py                 # funções auxiliares
 └── 📁 docs/
-    ├── 📄 c4_nivel2_containers.puml  # diagrama C4 Nível 2
+    ├── 📄 c4_nivel1_contexto.puml     # diagrama C4 Nível 1 (Contexto)
+    ├── 📄 c4_nivel2_containers.puml   # diagrama C4 Nível 2
+    ├── 🖼️ Asteroids_Diagrama C4 Contexto.drawio.png  # imagem do diagrama de contexto
     ├── 📄 ARCHITECTURE.md
     └── 📄 DEVELOPMENT_WORKFLOW.md
 ```
@@ -102,9 +105,15 @@ O projeto utiliza o **modelo C4** para representar a solução em diferentes ní
 
 ### Níveis utilizados
 
-* **C2 – Contêineres:** visão dos principais blocos do projeto — Cliente do Jogo (Pygame), Núcleo do Jogo (Python puro) e Assets de Áudio.
+* **C1 – Contexto:** visão externa do sistema, mostrando o jogador, os comandos via teclado e o jogo como sistema principal.
+* **C2 – Contêineres:** visão dos principais blocos internos do projeto — Cliente do Jogo (Pygame), Núcleo do Jogo (Python puro) e Assets de Áudio.
 
-O diagrama completo está em [`docs/c4_nivel2_containers.puml`](docs/c4_nivel2_containers.puml) e pode ser renderizado com a extensão **PlantUML** no VS Code (`Alt+D`) ou em [plantuml.com/plantuml](https://www.plantuml.com/plantuml/uml/).
+Diagramas disponíveis:
+
+- [`docs/c4_nivel1_contexto.puml`](docs/c4_nivel1_contexto.puml)
+- [`docs/c4_nivel2_containers.puml`](docs/c4_nivel2_containers.puml)
+
+Os arquivos `.puml` podem ser renderizados com a extensão **PlantUML** no VS Code (`Alt+D`) ou em [plantuml.com/plantuml](https://www.plantuml.com/plantuml/uml/).
 
 ---
 
@@ -151,6 +160,7 @@ python3 main.py
 | UFO                       | Inimigo que persegue e atira no jogador                |
 | Hyperspace                | Teleporte aleatório com custo de 250 pontos            |
 | ❄️ Freeze Time             | Coletável que para todos os asteroides por 5 segundos  |
+| Power-up de Vida Extra    | Surge ao destruir fragmento especial S e concede +1 vida ao coletar |
 | Buraco Negro              | Buraco negro que puxa a nave para perto dele           |
 | Sistema de pontuação      | Pontos por asteroide e UFO destruídos                  |
 | Progressão por ondas      | Dificuldade aumenta a cada onda                        |

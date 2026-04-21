@@ -1,7 +1,7 @@
 """Game systems (World, waves, score)."""
 
 import math
-from random import uniform
+from random import uniform as rand_uniform
 from typing import Dict
 
 import pygame as pg
@@ -9,9 +9,7 @@ import pygame as pg
 from core import config as C
 from core.collisions import CollisionManager
 from core.commands import PlayerCommand
-from core.entities import Asteroid, FreezePickup, ShieldPickup, Ship, UFO
-from core.entities import Asteroid, FreezePickup, BlackHole, Ship, UFO
-from core.entities import Asteroid, FreezePickup, Ship, UFO, TripleShootPowerUp
+from core.entities import Asteroid, BlackHole, FreezePickup, PowerUp, Ship, SpecialAsteroid, ShieldPickup, TripleShootPowerUp, UFO
 from core.utils import Vec, rand_edge_pos
 
 PlayerId = int
@@ -30,6 +28,7 @@ class World:
         self.bullets = pg.sprite.Group()
         self.asteroids = pg.sprite.Group()
         self.ufos = pg.sprite.Group()
+        self.powerups = pg.sprite.Group()
         self.freezes = pg.sprite.Group()
         self.shields = pg.sprite.Group()
         self.freezes = pg.sprite.Group()    # coletáveis de congelamento ativos
@@ -83,11 +82,25 @@ class World:
             while any((pos - sp).length() < C.AST_MIN_SPAWN_DIST for sp in ship_positions):
                 pos = rand_edge_pos()
 
-            ang = uniform(0, math.tau)
-            speed = uniform(C.AST_VEL_MIN, C.AST_VEL_MAX)
+            ang = rand_uniform(0, math.tau)
+            speed = rand_uniform(C.AST_VEL_MIN, C.AST_VEL_MAX)
             vel = Vec(math.cos(ang), math.sin(ang)) * speed
-            self.spawn_asteroid(pos, vel, "L")
+            special = rand_uniform(0, 1) < C.SPECIAL_AST_CHANCE
+            self.spawn_asteroid(pos, vel, "L", special=special)
 
+    def spawn_asteroid(
+        self,
+        pos: Vec,
+        vel: Vec,
+        size: str,
+        special: bool = False,
+    ) -> None:
+        if special:
+            ast: Asteroid = SpecialAsteroid(pos, vel, size)
+        else:
+            ast = Asteroid(pos, vel, size)
+        self.asteroids.add(ast)
+        self.all_sprites.add(ast)
     def spawn_asteroid(self, pos: Vec, vel: Vec, size: str) -> None:
         asteroid = Asteroid(pos, vel, size)
         self.asteroids.add(asteroid)
@@ -111,8 +124,13 @@ class World:
         self.shields.add(pickup)
         self.all_sprites.add(pickup)
 
+    def spawn_powerup(self, pos: Vec, kind: str) -> None:
+        pup = PowerUp(pos, kind)
+        self.powerups.add(pup)
+        self.all_sprites.add(pup)
+
     def spawn_ufo(self) -> None:
-        small = uniform(0, 1) < 0.5
+        small = rand_uniform(0, 1) < 0.5
         pos = rand_edge_pos()
         target = self._get_nearest_ship_pos(pos)
         ufo = UFO(pos, small, target_pos=target)
@@ -263,6 +281,7 @@ class World:
             self.bullets,
             self.asteroids,
             self.ufos,
+            self.powerups,
             self.freezes,
             self.shields,
             self.ships, self.bullets, self.asteroids, self.ufos,
@@ -276,8 +295,15 @@ class World:
         for player_id, delta in result.score_deltas.items():
             self.scores[player_id] = self.scores.get(player_id, 0) + delta
 
-        for pos, vel, size in result.asteroids_to_spawn:
-            self.spawn_asteroid(pos, vel, size)
+        for player_id, delta in result.lives_deltas.items():
+            if player_id in self.lives:
+                self.lives[player_id] += delta
+
+        for pos, vel, size, special in result.asteroids_to_spawn:
+            self.spawn_asteroid(pos, vel, size, special=special)
+
+        for pos, kind in result.powerups_to_spawn:
+            self.spawn_powerup(pos, kind)
 
         for pos in result.pickups_to_spawn:
             self.spawn_freeze_pickup(pos)

@@ -8,6 +8,9 @@ import pygame as pg
 from core import config as C
 from core.entities import (
     Asteroid,
+    PowerUp,
+    Ship,
+    SpecialAsteroid,
     Bullet,
     FreezePickup,
     ShieldPickup,
@@ -16,8 +19,7 @@ from core.entities import (
     UFO_BULLET_OWNER,
     PlayerId,
 )
-from core.entities import Asteroid, BlackHole, Bullet, FreezePickup, Ship, UFO, UFO_BULLET_OWNER, PlayerId
-from core.entities import Asteroid, Bullet, FreezePickup, Ship, UFO, UFO_BULLET_OWNER, PlayerId, TripleShootPowerUp
+from core.entities import Asteroid, BlackHole, Bullet, FreezePickup, PlayerId, Ship, TripleShootPowerUp, UFO, UFO_BULLET_OWNER
 from core.utils import Vec, rand_unit_vec
 
 
@@ -38,8 +40,10 @@ class CollisionResult:
 
     events: list[str] = field(default_factory=list)
     score_deltas: dict[PlayerId, int] = field(default_factory=dict)
+    lives_deltas: dict[PlayerId, int] = field(default_factory=dict)
     ship_deaths: list[PlayerId] = field(default_factory=list)
-    asteroids_to_spawn: list[tuple[Vec, Vec, str]] = field(default_factory=list)
+    asteroids_to_spawn: list[tuple[Vec, Vec, str, bool]] = field(default_factory=list)
+    powerups_to_spawn: list[tuple[Vec, str]] = field(default_factory=list)
 
     pickups_to_spawn: list[Vec] = field(default_factory=list)
     shield_pickups_to_spawn: list[Vec] = field(default_factory=list)
@@ -61,6 +65,7 @@ class CollisionManager:
         bullets: pg.sprite.Group,
         asteroids: pg.sprite.Group,
         ufos: pg.sprite.Group,
+        powerups: pg.sprite.Group,
         black_holes: pg.sprite.Group,
         freezes: pg.sprite.Group | None = None,
         shields: pg.sprite.Group | None = None,
@@ -73,6 +78,7 @@ class CollisionManager:
         self._bullets_vs_asteroids(bullets, asteroids, result)
         self._ufo_vs_player_bullets(ufos, bullets, result)
         self._ufo_vs_asteroids(ufos, asteroids, result)
+        self._ship_vs_powerups(ships, powerups, result)
         self._ship_vs_asteroids(ships, asteroids, result)
         self._ship_vs_ufo_bullets(ships, bullets, result)
 
@@ -103,13 +109,22 @@ class CollisionManager:
 
         for ast, hit_bullets in hits.items():
             if any(b.owner_id == UFO_BULLET_OWNER for b in hit_bullets):
-                ast.kill()
-                result.events.append("asteroid_explosion")
+                self._split_asteroid(
+                    ast,
+                    result,
+                    killer="ufo_bullet",
+                    scorer_id=None,
+                )
                 continue
 
             player_bullets = [b for b in hit_bullets if b.owner_id > 0]
             scorer = player_bullets[0].owner_id if player_bullets else None
-            self._split_asteroid(ast, scorer_id=scorer, result=result)
+            self._split_asteroid(
+                ast,
+                result,
+                killer="player",
+                scorer_id=scorer,
+            )
 
     def _ufo_vs_player_bullets(
         self,
@@ -149,8 +164,32 @@ class CollisionManager:
                     if ufo in ufos:
                         ufos.remove(ufo)
                     result.events.append("ship_explosion")
-                    self._split_asteroid(ast, result=result)
+                    self._split_asteroid(
+                        ast,
+                        result,
+                        killer="ufo_body",
+                        scorer_id=None,
+                    )
                     break
+
+    def _ship_vs_powerups(
+        self,
+        ships: dict[PlayerId, Ship],
+        powerups: pg.sprite.Group,
+        result: CollisionResult,
+    ) -> None:
+        for ship in ships.values():
+            if ship.invuln > 0.0:
+                continue
+            for pup in list(powerups):
+                if not isinstance(pup, PowerUp):
+                    continue
+                if (ship.pos - pup.pos).length() < (ship.r + pup.r):
+                    if pup.kind == "extra_life":
+                        result.lives_deltas[ship.player_id] = (
+                            result.lives_deltas.get(ship.player_id, 0) + 1
+                        )
+                    pup.kill()
 
     def _ship_vs_asteroids(
         self,
@@ -161,15 +200,20 @@ class CollisionManager:
         for ship in ships.values():
             if ship.invuln > 0.0:
                 continue
-
             for ast in list(asteroids):
                 if (ast.pos - ship.pos).length() < (ast.r + ship.r):
                     if ship.shield_timer > 0.0:
                         self._split_asteroid(ast, result=result)
                         result.events.append("shield_block")
-                        continue
+                        continue  
 
                     result.ship_deaths.append(ship.player_id)
+                    self._split_asteroid(
+                        ast,
+                        result,
+                        killer="ship",
+                        scorer_id=None,
+                    )
                     return
 
     def _ship_vs_ufo_bullets(
@@ -265,20 +309,40 @@ class CollisionManager:
         self,
         ast: Asteroid,
         result: CollisionResult,
-        scorer_id: PlayerId | None = None,
+        *,
+        killer: str,
+        scorer_id: PlayerId | None,
     ) -> None:
-        """Divide ou destrói um asteroide."""
-        if scorer_id is not None:
+        if killer == "player" and scorer_id is not None:
             result.score_deltas[scorer_id] = (
                 result.score_deltas.get(scorer_id, 0) + C.AST_SIZES[ast.size]["score"]
             )
 
         split = C.AST_SIZES[ast.size]["split"]
         pos = Vec(ast.pos)
+        is_special = isinstance(ast, SpecialAsteroid)
+
+        if killer == "player" and is_special and ast.size == "S":
+            ast.kill()
+            result.events.append("asteroid_explosion")
+            result.powerups_to_spawn.append((pos, "extra_life"))
+            return
 
         ast.kill()
         result.events.append("asteroid_explosion")
 
+        inherit_one = (
+            is_special
+            and len(split) == 2
+            and killer in ("player", "ship")
+        )
+        special_slot = int(uniform(0, 1) < 0.5) if inherit_one else -1
+
+        for i, new_size in enumerate(split):
+            dirv = rand_unit_vec()
+            speed = uniform(C.AST_VEL_MIN, C.AST_VEL_MAX) * C.AST_SPLIT_SPEED_MULT
+            child_special = inherit_one and i == special_slot
+            result.asteroids_to_spawn.append((pos, dirv * speed, new_size, child_special))
         if random() < C.FREEZE_SPAWN_CHANCE:
             result.pickups_to_spawn.append(Vec(pos))
         

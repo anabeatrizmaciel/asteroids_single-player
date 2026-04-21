@@ -161,10 +161,10 @@ python3 main.py
 | Integrante                     | Responsabilidade          |
 | ------------------------------ | ------------------------- |
 | Ana Beatriz Maciel Nunes       | Freeze Time               |
-| Fernando Luiz Da Silva Freire  | —                         |
-| Juliana Ballin Lima            | —                         |
-| Marcelo Heitor de Almeida Lira | —                         |
-| Lucas Carvalho dos Santos      | —                         |
+| Fernando Luiz Da Silva Freire  | Power Ups                 |
+| Juliana Ballin Lima            | Temporary Shield          |
+| Marcelo Heitor de Almeida Lira | Triple Shot               |
+| Lucas Carvalho dos Santos      | Black Hole                |
 
 ---
 
@@ -183,7 +183,7 @@ python3 main.py
 | Ana Beatriz Maciel Nunes       |             |
 | Fernando Luiz Da Silva Freire  |             |
 | Juliana Ballin Lima            |             |
-| Marcelo Heitor de Almeida Lira |             |
+| Marcelo Heitor de Almeida Lira | 2315310043  |
 | Lucas Carvalho dos Santos      |             |
 
 ---

@@ -1,26 +1,20 @@
-"""Game loop and scenes (menu, play, game over).
-
-- InputMapper converts keyboard input into PlayerCommand.
-- World updates the simulation and generates events (strings) for Game.
-- Game handles audio and screen transitions (low coupling).
-"""
+"""Game loop and scenes (menu, play, game over)."""
 
 import sys
 
 import pygame as pg
 
-from core import config as C
-from core.scene import SceneState
-
 from client.audio import load_sounds
 from client.audio_manager import AudioManager
 from client.controls import InputMapper
 from client.renderer import Renderer
+from core import config as C
+from core.scene import SceneState
 from core.world import World
 
 
 class Game:
-    """Orchestrates input -> update -> draw."""
+    """Orchestrates input, world update and rendering."""
 
     def __init__(self) -> None:
         pg.mixer.pre_init(
@@ -35,7 +29,6 @@ class Game:
         self.screen = pg.display.set_mode((C.WIDTH, C.HEIGHT))
         pg.display.set_caption("Asteroids")
         self.clock = pg.time.Clock()
-        self.running = True
 
         self.font = pg.font.SysFont(C.FONT_NAME, C.FONT_SIZE_SMALL)
         self.big = pg.font.SysFont(C.FONT_NAME, C.FONT_SIZE_LARGE)
@@ -46,11 +39,14 @@ class Game:
             fonts={"font": self.font, "big": self.big},
         )
 
-        self.scene = SceneState.MENU
         self.world = World()
         self.input_mapper = InputMapper()
-        self.sounds = load_sounds(C.SOUND_PATH)
-        self.audio = AudioManager(self.sounds)
+
+        sounds = load_sounds(C.SOUND_PATH)
+        self.audio = AudioManager(sounds)
+
+        self.scene = SceneState.MENU
+        self.running = True
 
     def run(self) -> None:
         while self.running:
@@ -71,6 +67,7 @@ class Game:
 
             if self.scene == SceneState.MENU:
                 if event.type == pg.KEYDOWN:
+                    self.world.reset()
                     self.scene = SceneState.PLAY
                 continue
 
@@ -119,16 +116,16 @@ class Game:
 
         ship = self.world.get_ship(C.LOCAL_PLAYER_ID)
         shield_timer = ship.shield_timer if ship is not None else 0.0
+        triple_shot_timer = ship.triple_shot_timer if ship is not None else 0.0
 
         self.renderer.draw_hud(
-            self.world.scores.get(C.LOCAL_PLAYER_ID, 0),
-            self.world.lives.get(C.LOCAL_PLAYER_ID, 0),
-            self.world.wave,
-            self.scene,
+            score=self.world.scores.get(C.LOCAL_PLAYER_ID, 0),
+            lives=self.world.lives.get(C.LOCAL_PLAYER_ID, 0),
+            wave=self.world.wave,
+            state=self.scene,
             freeze_timer=self.world.freeze_timer,
             shield_timer=shield_timer,
-            freeze_timer=self.world.freeze_timer,   # exibe contador de freeze
-            triple_shot_timer=self.world.ships.get(C.LOCAL_PLAYER_ID, {}).triple_shot_timer,  # exibe contador de tiro triplo
+            triple_shot_timer=triple_shot_timer,
         )
 
         pg.display.flip()

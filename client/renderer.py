@@ -1,16 +1,26 @@
-"""Renderização do lado cliente (pygame)."""
+"""Client-side rendering."""
 
 import math
 
 import pygame as pg
 
 from core import config as C
-from core.entities import Asteroid, BlackHole, Bullet, FreezePickup, PowerUp, ShieldPickup, Ship, SpecialAsteroid, TripleShootPowerUp, UFO
+from core.entities import (
+    Asteroid,
+    BlackHole,
+    Bullet,
+    FreezePickup,
+    PowerUp,
+    ShieldPickup,
+    Ship,
+    SpecialAsteroid,
+    TripleShootPowerUp,
+    UFO,
+)
 from core.scene import SceneState
 
 
 class Renderer:
-
     def __init__(
         self,
         screen: pg.Surface,
@@ -19,9 +29,16 @@ class Renderer:
     ) -> None:
         self.screen = screen
         self.config = config
+
         safe_fonts = fonts or {}
-        self.font = safe_fonts["font"]
-        self.big = safe_fonts["big"]
+        self.font = safe_fonts.get(
+            "font",
+            pg.font.SysFont(getattr(self.config, "FONT_NAME", "consolas"), getattr(self.config, "FONT_SIZE_SMALL", 22)),
+        )
+        self.big = safe_fonts.get(
+            "big",
+            pg.font.SysFont(getattr(self.config, "FONT_NAME", "consolas"), getattr(self.config, "FONT_SIZE_LARGE", 64)),
+        )
 
         self._draw_dispatch: dict[type, callable] = {
             Bullet: self._draw_bullet,
@@ -32,9 +49,8 @@ class Renderer:
             UFO: self._draw_ufo,
             FreezePickup: self._draw_freeze_pickup,
             ShieldPickup: self._draw_shield_pickup,
-            FreezePickup: self._draw_freeze_pickup,  # coletável de congelamento
             BlackHole: self._draw_black_hole,
-            TripleShootPowerUp: self._draw_triple_shot_power_up,  # coletável de tiro triplo
+            TripleShootPowerUp: self._draw_triple_shot_power_up,
         }
 
     def clear(self) -> None:
@@ -57,104 +73,120 @@ class Renderer:
         shield_timer: float = 0.0,
         triple_shot_timer: float = 0.0,
     ) -> None:
-        """Desenha o HUD com pontuação, vidas, wave e timers de efeitos."""
         if state != SceneState.PLAY:
             return
 
-        text = f"SCORE {score:06d} LIVES {lives} WAVE {wave}"
-        label = self.font.render(text, True, self.config.WHITE)
+        header = f"SCORE {score:06d}  LIVES {lives}  WAVE {wave}"
+        label = self.font.render(header, True, self.config.WHITE)
         self.screen.blit(label, (10, 10))
 
+        effect_y = 38
+        effect_gap = 24
+
         if freeze_timer > 0.0:
-            freeze_text = f"FREEZE {freeze_timer:.1f}s"
-            freeze_label = self.font.render(freeze_text, True, C.FREEZE_COLOR)
-            self.screen.blit(freeze_label, (10, 36))
-        
-        # Contador de tiro triplo
-        if triple_shot_timer > 0.0:
-            triple_text = f"TRIPLE SHOT {triple_shot_timer:.1f}s"
-            triple_label = self.font.render(triple_text, True, C.TRIPLE_SHOT_COLOR)
-            self.screen.blit(triple_label, (10, 62))
+            freeze_label = self.font.render(
+                f"FREEZE {freeze_timer:.1f}s",
+                True,
+                C.FREEZE_COLOR,
+            )
+            self.screen.blit(freeze_label, (10, effect_y))
+            effect_y += effect_gap
 
         if shield_timer > 0.0:
-            shield_text = f"SHIELD {shield_timer:.1f}s"
-            shield_label = self.font.render(shield_text, True, C.SHIELD_COLOR)
-            self.screen.blit(shield_label, (10, 62))
+            shield_label = self.font.render(
+                f"SHIELD {shield_timer:.1f}s",
+                True,
+                C.SHIELD_COLOR,
+            )
+            self.screen.blit(shield_label, (10, effect_y))
+            effect_y += effect_gap
+
+        if triple_shot_timer > 0.0:
+            triple_label = self.font.render(
+                f"TRIPLE SHOT {triple_shot_timer:.1f}s",
+                True,
+                C.TRIPLE_SHOT_COLOR,
+            )
+            self.screen.blit(triple_label, (10, effect_y))
 
     def draw_menu(self) -> None:
-        self._draw_text(
-            self.big,
-            "ASTEROIDS",
-            self.config.WIDTH // 2 - 170,
-            200,
+        title = self.big.render("ASTEROIDS", True, self.config.WHITE)
+        prompt = self.font.render("Press any key", True, self.config.WHITE)
+
+        self.screen.blit(
+            title,
+            (
+                self.config.WIDTH // 2 - title.get_width() // 2,
+                200,
+            ),
         )
-        self._draw_text(
-            self.font,
-            "Press any key",
-            self.config.WIDTH // 2 - 100,
-            350,
+        self.screen.blit(
+            prompt,
+            (
+                self.config.WIDTH // 2 - prompt.get_width() // 2,
+                350,
+            ),
         )
 
     def draw_game_over(self) -> None:
-        self._draw_text(
-            self.big,
-            "GAME OVER",
-            self.config.WIDTH // 2 - 170,
-            260,
-        )
-        self._draw_text(
-            self.font,
-            "Press any key",
-            self.config.WIDTH // 2 - 170,
-            340,
-        )
+        title = self.big.render("GAME OVER", True, self.config.WHITE)
+        prompt = self.font.render("Press any key", True, self.config.WHITE)
 
-    def _draw_text(
-        self,
-        font: pg.font.Font,
-        text: str,
-        x: int,
-        y: int,
-    ) -> None:
-        label = font.render(text, True, self.config.WHITE)
-        self.screen.blit(label, (x, y))
+        self.screen.blit(
+            title,
+            (
+                self.config.WIDTH // 2 - title.get_width() // 2,
+                260,
+            ),
+        )
+        self.screen.blit(
+            prompt,
+            (
+                self.config.WIDTH // 2 - prompt.get_width() // 2,
+                340,
+            ),
+        )
 
     def _draw_bullet(self, bullet: Bullet) -> None:
         center = (int(bullet.pos.x), int(bullet.pos.y))
-        pg.draw.circle(
-            self.screen,
-            self.config.WHITE,
-            center,
-            bullet.r,
-            width=1,
-        )
+        pg.draw.circle(self.screen, self.config.WHITE, center, bullet.r, width=1)
 
     def _draw_asteroid(self, asteroid: Asteroid) -> None:
-        points = []
-        for point in asteroid.poly:
-            px = int(asteroid.pos.x + point.x)
-            py = int(asteroid.pos.y + point.y)
-            points.append((px, py))
+        points = [
+            (int(asteroid.pos.x + point.x), int(asteroid.pos.y + point.y))
+            for point in asteroid.poly
+        ]
         pg.draw.polygon(self.screen, self.config.WHITE, points, width=1)
 
     def _draw_special_asteroid(self, asteroid: SpecialAsteroid) -> None:
-        points = []
-        for point in asteroid.poly:
-            px = int(asteroid.pos.x + point.x)
-            py = int(asteroid.pos.y + point.y)
-            points.append((px, py))
+        points = [
+            (int(asteroid.pos.x + point.x), int(asteroid.pos.y + point.y))
+            for point in asteroid.poly
+        ]
         pg.draw.polygon(self.screen, self.config.GOLD, points, width=1)
-        center = (int(asteroid.pos.x), int(asteroid.pos.y))
-        pg.draw.circle(self.screen, self.config.GOLD, center, 2)
+        pg.draw.circle(
+            self.screen,
+            self.config.GOLD,
+            (int(asteroid.pos.x), int(asteroid.pos.y)),
+            2,
+        )
 
     def _draw_powerup(self, pup: PowerUp) -> None:
         if pup.ttl <= self.config.POWERUP_BLINK_THRESHOLD:
-            if int(pup.phase * self.config.POWERUP_BLINK_HZ * 2.0) % 2 != 0:
+            blink_phase = int(pup.phase * self.config.POWERUP_BLINK_HZ * 2.0) % 2
+            if blink_phase != 0:
                 return
+
         cx = int(pup.pos.x)
         cy = int(pup.pos.y)
         r = pup.r
-        points = [(cx, cy - r), (cx + r, cy), (cx, cy + r), (cx - r, cy)]
+
+        points = [
+            (cx, cy - r),
+            (cx + r, cy),
+            (cx, cy + r),
+            (cx - r, cy),
+        ]
         pg.draw.polygon(self.screen, self.config.GOLD, points, width=1)
 
     def _draw_ship(self, ship: Ship) -> None:
@@ -168,23 +200,11 @@ class Renderer:
 
         if ship.invuln > 0.0 and int(ship.invuln * 10) % 2 == 0:
             center = (int(ship.pos.x), int(ship.pos.y))
-            pg.draw.circle(
-                self.screen,
-                self.config.WHITE,
-                center,
-                ship.r + 6,
-                width=1,
-            )
+            pg.draw.circle(self.screen, self.config.WHITE, center, ship.r + 6, width=1)
 
         if ship.shield_timer > 0.0 and int(ship.shield_timer * 10) % 2 == 0:
             center = (int(ship.pos.x), int(ship.pos.y))
-            pg.draw.circle(
-                self.screen,
-                C.SHIELD_COLOR,
-                center,
-                ship.r + 10,
-                width=2,
-            )
+            pg.draw.circle(self.screen, C.SHIELD_COLOR, center, ship.r + 10, width=2)
 
     def _draw_ufo(self, ufo: UFO) -> None:
         width = ufo.r * 2
@@ -199,23 +219,27 @@ class Renderer:
         pg.draw.ellipse(self.screen, self.config.WHITE, cup, width=1)
 
     def _draw_shield_pickup(self, pickup: ShieldPickup) -> None:
-        """Desenha um coletável de escudo como anéis concêntricos."""
         center = (int(pickup.pos.x), int(pickup.pos.y))
         pg.draw.circle(self.screen, C.SHIELD_COLOR, center, pickup.r, width=2)
-        pg.draw.circle(self.screen, C.SHIELD_COLOR, center, max(4, pickup.r // 2), width=1)
+        pg.draw.circle(
+            self.screen,
+            C.SHIELD_COLOR,
+            center,
+            max(4, pickup.r // 2),
+            width=1,
+        )
 
     def _draw_freeze_pickup(self, pickup: FreezePickup) -> None:
-        """Desenha um cristal de gelo (floco de neve simplificado) na tela."""
-        cx, cy = int(pickup.pos.x), int(pickup.pos.y)
+        cx = int(pickup.pos.x)
+        cy = int(pickup.pos.y)
         r = pickup.r
-        cor = C.FREEZE_COLOR
+        color = C.FREEZE_COLOR
 
         for i in range(6):
             ang = math.radians(i * 60)
             ex = cx + int(r * math.cos(ang))
             ey = cy + int(r * math.sin(ang))
-
-            pg.draw.line(self.screen, cor, (cx, cy), (ex, ey), 1)
+            pg.draw.line(self.screen, color, (cx, cy), (ex, ey), 1)
 
             mid_x = cx + int((r * 0.5) * math.cos(ang))
             mid_y = cy + int((r * 0.5) * math.sin(ang))
@@ -224,51 +248,48 @@ class Renderer:
                 side_ang = math.radians(i * 60 + delta)
                 sx = mid_x + int((r * 0.3) * math.cos(side_ang))
                 sy = mid_y + int((r * 0.3) * math.sin(side_ang))
-                pg.draw.line(self.screen, cor, (mid_x, mid_y), (sx, sy), 1)
-                pg.draw.line(self.screen, cor, (mid_x, mid_y), (sx, sy), 1)
+                pg.draw.line(self.screen, color, (mid_x, mid_y), (sx, sy), 1)
 
     def _draw_black_hole(self, bh: BlackHole) -> None:
-        pulse = math.sin(bh.age * self.config.BLACK_HOLE_PULSE_FREQ) * self.config.BLACK_HOLE_PULSE_AMP + 1.0
+        pulse = (
+            math.sin(bh.age * self.config.BLACK_HOLE_PULSE_FREQ)
+            * self.config.BLACK_HOLE_PULSE_AMP
+            + 1.0
+        )
         center = (int(bh.pos.x), int(bh.pos.y))
 
-        # Outer gravitational aura rings
         outer_r = int(bh.r * self.config.BLACK_HOLE_AURA_OUTER * pulse)
         mid_r = int(bh.r * self.config.BLACK_HOLE_AURA_MID * pulse)
+
         pg.draw.circle(self.screen, self.config.PURPLE_DARK, center, outer_r, width=1)
         pg.draw.circle(self.screen, self.config.PURPLE, center, mid_r, width=1)
-
-        # Solid black core
         pg.draw.circle(self.screen, self.config.BLACK, center, bh.r)
-
-        # Bright event-horizon border
         pg.draw.circle(self.screen, self.config.PURPLE_LIGHT, center, bh.r, width=2)
-    def _draw_triple_shot_power_up(self, power_up: TripleShootPowerUp) -> None:
-        """Desenha um ícone de tiro triplo com setas estilizadas e brilho."""
-        cx, cy = int(power_up.pos.x), int(power_up.pos.y)
-        r = power_up.r
-        cor_principal = (255, 215, 0)  # Dourado
-        cor_brilho = (255, 255, 150)    # Amarelo claro
-        
 
-        angulos = [-30, 0, 30]
-        
-        for ang_deg in angulos:
+    def _draw_triple_shot_power_up(self, power_up: TripleShootPowerUp) -> None:
+        cx = int(power_up.pos.x)
+        cy = int(power_up.pos.y)
+        r = power_up.r
+
+        main_color = C.TRIPLE_SHOT_COLOR
+        glow_color = self.config.WHITE
+
+        angles = [-30, 0, 30]
+        for ang_deg in angles:
             rad = math.radians(ang_deg - 90)
-            
-            ponta = (
+
+            tip = (
                 cx + int(r * math.cos(rad)),
-                cy + int(r * math.sin(rad))
+                cy + int(r * math.sin(rad)),
             )
-            
-            asa_esq = (
+            wing_left = (
                 cx + int(r * 0.5 * math.cos(rad + 2.5)),
-                cy + int(r * 0.5 * math.sin(rad + 2.5))
+                cy + int(r * 0.5 * math.sin(rad + 2.5)),
             )
-            asa_dir = (
+            wing_right = (
                 cx + int(r * 0.5 * math.cos(rad - 2.5)),
-                cy + int(r * 0.5 * math.sin(rad - 2.5))
+                cy + int(r * 0.5 * math.sin(rad - 2.5)),
             )
-            
-            pg.draw.polygon(self.screen, cor_principal, [ponta, asa_esq, asa_dir])
-            
-            pg.draw.circle(self.screen, cor_brilho, ponta, 2)
+
+            pg.draw.polygon(self.screen, main_color, [tip, wing_left, wing_right])
+            pg.draw.circle(self.screen, glow_color, tip, 2)

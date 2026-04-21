@@ -73,8 +73,25 @@ FREEZE_DURATION = 5.0           # duração do efeito de congelamento em segundo
 FREEZE_SPAWN_CHANCE = 0.45      # probabilidade de spawnar ao destruir asteroide
 FREEZE_COLOR = (0, 200, 255)    # azul gelo (ciano)
 
+# Black Hole
+BLACK_HOLE_RADIUS = 28
+BLACK_HOLE_TTL_MIN = 5.0
+BLACK_HOLE_TTL_MAX = 10.0
+BLACK_HOLE_SPAWN_EVERY = 20.0
+BLACK_HOLE_GRAVITY = 1800_000.0  # Gravitational constant (pixels/s² * px²)
+BLACK_HOLE_GRAVITY_MIN_DIST = 5.0  # Clamp to avoid division by zero
+BLACK_HOLE_MIN_SPAWN_DIST = 200.0
+BLACK_HOLE_PULSE_FREQ = 4.0
+BLACK_HOLE_PULSE_AMP = 0.12
+BLACK_HOLE_AURA_OUTER = 2.6
+BLACK_HOLE_AURA_MID = 1.8
+
 WHITE = (240, 240, 240)
 BLACK = (0, 0, 0)
+
+PURPLE = (110, 0, 180)
+PURPLE_DARK = (60, 0, 100)
+PURPLE_LIGHT = (190, 160, 255)
 
 # Audio mixer settings
 AUDIO_FREQUENCY = 44100

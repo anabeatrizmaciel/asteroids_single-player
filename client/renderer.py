@@ -5,6 +5,7 @@ import math
 import pygame as pg
 
 from core import config as C
+from core.entities import Asteroid, BlackHole, Bullet, FreezePickup, Ship, UFO
 from core.entities import Asteroid, Bullet, FreezePickup, Ship, UFO, TripleShootPowerUp
 from core.scene import SceneState
 
@@ -30,6 +31,7 @@ class Renderer:
             Ship: self._draw_ship,
             UFO: self._draw_ufo,
             FreezePickup: self._draw_freeze_pickup,  # coletável de congelamento
+            BlackHole: self._draw_black_hole,
             TripleShootPowerUp: self._draw_triple_shot_power_up,  # coletável de tiro triplo
         }
 
@@ -186,6 +188,21 @@ class Renderer:
                 sy = mid_y + int((r * 0.3) * math.sin(side_ang))
                 pg.draw.line(self.screen, cor, (mid_x, mid_y), (sx, sy), 1)
 
+    def _draw_black_hole(self, bh: BlackHole) -> None:
+        pulse = math.sin(bh.age * self.config.BLACK_HOLE_PULSE_FREQ) * self.config.BLACK_HOLE_PULSE_AMP + 1.0
+        center = (int(bh.pos.x), int(bh.pos.y))
+
+        # Outer gravitational aura rings
+        outer_r = int(bh.r * self.config.BLACK_HOLE_AURA_OUTER * pulse)
+        mid_r = int(bh.r * self.config.BLACK_HOLE_AURA_MID * pulse)
+        pg.draw.circle(self.screen, self.config.PURPLE_DARK, center, outer_r, width=1)
+        pg.draw.circle(self.screen, self.config.PURPLE, center, mid_r, width=1)
+
+        # Solid black core
+        pg.draw.circle(self.screen, self.config.BLACK, center, bh.r)
+
+        # Bright event-horizon border
+        pg.draw.circle(self.screen, self.config.PURPLE_LIGHT, center, bh.r, width=2)
     def _draw_triple_shot_power_up(self, power_up: TripleShootPowerUp) -> None:
         """Desenha um ícone de tiro triplo com setas estilizadas e brilho."""
         cx, cy = int(power_up.pos.x), int(power_up.pos.y)

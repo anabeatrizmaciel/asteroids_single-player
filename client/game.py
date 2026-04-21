@@ -117,6 +117,7 @@ class Game:
             self.world.wave,
             self.scene,
             freeze_timer=self.world.freeze_timer,   # exibe contador de freeze
+            triple_shot_timer=self.world.ships.get(C.LOCAL_PLAYER_ID, {}).triple_shot_timer,  # exibe contador de tiro triplo
         )
         pg.display.flip()
 

@@ -94,6 +94,8 @@ class Ship(pg.sprite.Sprite):
         self.invuln = 0.0
         self.r = int(C.SHIP_RADIUS)
         self.rect = pg.Rect(0, 0, self.r * 2, self.r * 2)
+        self.triple_shoot = False       # Se True, permite disparar 3 tiros ao mesmo tempo
+        self.triple_shot_timer = 0.0    # Contador de tempo restante do efeito de tiro triplo
 
     def apply_command(
         self,
@@ -115,25 +117,67 @@ class Ship(pg.sprite.Sprite):
             return self._try_fire(bullets)
 
         return None
-
-    def _try_fire(self, bullets: pg.sprite.Group) -> "Bullet | None":
+    
+    def _try_fire(self, bullets: pg.sprite.Group) -> list[Bullet]:
         if self.cool > 0.0:
-            return None
+            return []
 
         count = 0
         for bullet in bullets:
             if getattr(bullet, "owner_id", None) == self.player_id:
                 count += 1
 
-        if count >= C.MAX_BULLETS_PER_PLAYER:
-            return None
+        """Limita o número de tiros ativos por jogador, considerando o efeito de tiro triplo."""
+        if self.triple_shoot:
+            if count >= C.MAX_BULLETS_PER_PLAYER * 3:
+                return []
+        else:
+            if count >= C.MAX_BULLETS_PER_PLAYER:
+                return []
 
         dirv = angle_to_vec(self.angle)
         pos = self.pos + dirv * (self.r + C.BULLET_SPAWN_OFFSET)
         vel = self.vel + dirv * C.SHIP_BULLET_SPEED
 
+        bullets_to_spawn = [
+            Bullet(self.player_id, pos, vel, ttl=C.BULLET_TTL)
+        ]
+
+        # Lógica do tiro triplo
+        if self.triple_shoot:
+            angle_offset = C.TRIPLE_SHOT_ANGLE_OFFSET
+            left_dirv = rotate_vec(dirv, angle_offset)
+            right_dirv = rotate_vec(dirv, -angle_offset)
+
+            bullets_to_spawn.append(
+                Bullet(
+                    self.player_id,
+                    self.pos + left_dirv * (self.r + C.BULLET_SPAWN_OFFSET),
+                    self.vel + left_dirv * C.SHIP_BULLET_SPEED,
+                    ttl=C.BULLET_TTL,
+                )
+            )
+            bullets_to_spawn.append(
+                Bullet(
+                    self.player_id,
+                    self.pos + right_dirv * (self.r + C.BULLET_SPAWN_OFFSET),
+                    self.vel + right_dirv * C.SHIP_BULLET_SPEED,
+                    ttl=C.BULLET_TTL,
+                )
+            )
+
         self.cool = float(C.SHIP_FIRE_RATE)
-        return Bullet(self.player_id, pos, vel, ttl=C.BULLET_TTL)
+        return bullets_to_spawn
+    
+    """
+    Decrementa o timer de tiro triplo e desativa o efeito quando expirar.
+    """
+    def _update_triple_shot_timer(self, dt: float) -> None:
+        if self.triple_shoot:
+            self.triple_shot_timer -= dt
+            if self.triple_shot_timer <= 0.0:
+                self.triple_shot_timer = 0.0
+                self.triple_shoot = False
 
     def hyperspace(self) -> None:
         self.pos = Vec(uniform(0, C.WIDTH), uniform(0, C.HEIGHT))
@@ -179,6 +223,24 @@ class FreezePickup(pg.sprite.Sprite):
         self.pos = Vec(pos)
         self.ttl = float(C.FREEZE_PICKUP_TTL)   # contador de tempo de vida
         self.r = int(C.FREEZE_PICKUP_RADIUS)
+        self.rect = pg.Rect(0, 0, self.r * 2, self.r * 2)
+
+    def update(self, dt: float) -> None:
+        """Decrementa o TTL e se remove ao expirar."""
+        self.ttl -= dt
+        if self.ttl <= 0.0:
+            self.kill()
+            return
+        self.rect.center = (int(self.pos.x), int(self.pos.y))
+
+class TripleShootPowerUp(pg.sprite.Sprite):
+    """Power-up que permite disparar 3 tiros ao mesmo tempo."""
+
+    def __init__(self, pos: Vec) -> None:
+        super().__init__()
+        self.pos = Vec(pos)
+        self.ttl = float(C.TRIPLE_SHOT_PICKUP_TTL)   # contador de tempo de vida
+        self.r = int(C.TRIPLE_SHOT_PICKUP_RADIUS)
         self.rect = pg.Rect(0, 0, self.r * 2, self.r * 2)
 
     def update(self, dt: float) -> None:

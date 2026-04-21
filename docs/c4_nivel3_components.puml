@@ -1,0 +1,35 @@
+@startuml c4_nivel3_core_asteroids
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+title [Components] Diagram Asteroids Gameplay: Components do core/
+
+caption Recorte dos componentes de regra do jogo (sem dependência de Pygame) dentro do container "Aplicação desktop Asteroids"
+
+Container_Boundary(core, "Core Layer [subconjunto interno do container Aplicação desktop Asteroids]\n[Container]") {
+
+    Component(playerCommand, "PlayerCommand", "[commands.py]", "Contrato de entrada do jogador. Representa comandos imutáveis.")
+    Component(world, "World", "[world.py]", "Estado do mundo e lógica de ondas. Atualiza entidades a cada tick, gerencia tempo, pontuação, vida, UFO, power-ups e transições de onda.")
+    Component(collisionManager, "CollisionManager", "[collisions.py]", "Detecta e resolve colisões entre entidades (nave, asteroides, tiros, bordas, UFO, power-ups). Aplica efeitos e remove destruídos.")
+    Component(config, "Config", "[config.py]", "Constantes do jogo: velocidades, tamanhos, tempos, limites, spawn, pontuação, etc.")
+    Component(sceneState, "SceneState", "[scene.py]", "Enum que define o estado da cena atual: MENU, PLAYING, GAME_OVER.")
+    Component(entities, "Entities", "[entities.py]", "Coleção e classes das entidades do jogo: nave, asteroides, tiros, UFO e pickups. Responsável por atualizar, adicionar, remover e expor consultas.")
+    Component(utils, "Utils", "[utils.py]", "Funções auxiliares usadas em várias partes do core: matemática vetorial, ângulos, clamp, distância, helpers, etc.")
+}
+
+System_Ext(clientLayer, "Client Layer", "[External Software System]\n\nTraduz entrada do usuário em PlayerCommand\ne observa o estado do World para renderização\ndas cenas e entidades.")
+
+Rel(clientLayer, playerCommand, "envia PlayerCommand")
+Rel(clientLayer, sceneState, "define / troca estado da cena")
+Rel(clientLayer, entities, "observa estado do World\n(para renderização)")
+
+Rel(playerCommand, world, "recebe comandos de")
+Rel(sceneState, world, "informa transições\nde cena")
+Rel(world, collisionManager, "consulta / utiliza")
+Rel(collisionManager, config, "lê constantes")
+Rel(world, entities, "atualiza")
+Rel(collisionManager, entities, "verifica / resolve\ncolisões")
+Rel(entities, utils, "usa funções\nauxiliares")
+
+SHOW_LEGEND()
+@enduml

@@ -42,7 +42,7 @@ O jogador pode coletar um item especial que ativa um escudo por alguns segundos,
 ### 2. Tiro Dividido / Espalhado
 O jogador pode coletar um item que permite disparar múltiplos tiros simultâneos por um tempo limitado, aumentando significativamente o poder de fogo contra grandes hordas de asteroides.
 
-### 3. ❄️ Freeze Time *(implementado nesta branch)*
+### 3. ❄️ Freeze Time
 Ao destruir asteroides, um coletável azul aparece na tela. Tocá-lo com a nave congela todos os asteroides por 5 segundos, dando tempo para eliminar os restantes com segurança.
 
 ### 4. Buraco Negro

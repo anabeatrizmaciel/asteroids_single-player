@@ -46,7 +46,7 @@ O jogador pode coletar um item que permite disparar múltiplos tiros simultâneo
 Ao destruir asteroides, um coletável azul aparece na tela. Tocá-lo com a nave congela todos os asteroides por 5 segundos, dando tempo para eliminar os restantes com segurança.
 
 ### 4. Buraco Negro
-Um buraco negro surge na tela atraindo asteroides e inimigos próximos para o seu centro, destruindo tudo que entra em seu raio de ação.
+Um buraco negro aparece em um ponto aleatório e dura entre 5 a 10 segundos. Afeta a movimentação da nave do jogador, puxando em sua direção com força variável conforme a distância. Caso o jogador encoste no buraco negro, é fim de jogo.
 
 ### 5. Power-Ups
 Itens coletáveis que concedem bônus temporários ao jogador, como vida extra ou disparo mais rápido.
@@ -151,6 +151,7 @@ python3 main.py
 | UFO                       | Inimigo que persegue e atira no jogador                |
 | Hyperspace                | Teleporte aleatório com custo de 250 pontos            |
 | ❄️ Freeze Time             | Coletável que para todos os asteroides por 5 segundos  |
+| Buraco Negro              | Buraco negro que puxa a nave para perto dele           |
 | Sistema de pontuação      | Pontos por asteroide e UFO destruídos                  |
 | Progressão por ondas      | Dificuldade aumenta a cada onda                        |
 
@@ -160,11 +161,11 @@ python3 main.py
 
 | Integrante                     | Responsabilidade          |
 | ------------------------------ | ------------------------- |
-| Ana Beatriz Maciel Nunes       | Freeze Time               |
-| Fernando Luiz Da Silva Freire  | —                         |
-| Juliana Ballin Lima            | —                         |
-| Marcelo Heitor de Almeida Lira | —                         |
-| Lucas Carvalho dos Santos      | —                         |
+| Ana Beatriz Maciel Nunes       | Escudo Temporário         |
+| Fernando Luiz Da Silva Freire  | Power-Ups                 |
+| Juliana Ballin Lima            | Freeze Time               |
+| Marcelo Heitor de Almeida Lira | Tiro Dividido / Espalhado |
+| Lucas Carvalho dos Santos      | Buraco Negro              |
 
 ---
 
@@ -180,11 +181,11 @@ python3 main.py
 
 | Nome                           | Matrícula   |
 | ------------------------------ | ----------- |
-| Ana Beatriz Maciel Nunes       |             |
-| Fernando Luiz Da Silva Freire  |             |
-| Juliana Ballin Lima            |             |
-| Marcelo Heitor de Almeida Lira |             |
-| Lucas Carvalho dos Santos      |             |
+| Ana Beatriz Maciel Nunes       | 2312030085  |
+| Fernando Luiz Da Silva Freire  | 2315310007  |
+| Juliana Ballin Lima            | 2315310011  |
+| Marcelo Heitor de Almeida Lira | 2315310043  |
+| Lucas Carvalho dos Santos      | 2315310012  |
 
 ---
 

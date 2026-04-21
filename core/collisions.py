@@ -16,12 +16,25 @@ from core.entities import (
     UFO_BULLET_OWNER,
     PlayerId,
 )
+from core.entities import Asteroid, BlackHole, Bullet, FreezePickup, Ship, UFO, UFO_BULLET_OWNER, PlayerId
+from core.entities import Asteroid, Bullet, FreezePickup, Ship, UFO, UFO_BULLET_OWNER, PlayerId, TripleShootPowerUp
 from core.utils import Vec, rand_unit_vec
 
 
 @dataclass
 class CollisionResult:
     """Aggregated effects produced by collision checks."""
+    """Resultado de um passo de resolução de colisões.
+
+    Atributos:
+        events: nomes de sons/efeitos a disparar.
+        score_deltas: pontos a adicionar por jogador.
+        ship_deaths: IDs de jogadores que morreram.
+        asteroids_to_spawn: novos asteroides gerados por divisão.
+        pickups_to_spawn: posições onde um FreezePickup deve ser criado.
+        freeze_activated: True se a nave coletou um FreezePickup neste frame.
+        triple_shoots_to_spawn: posições onde um TripleShootPowerUp deve ser criado.
+    """
 
     events: list[str] = field(default_factory=list)
     score_deltas: dict[PlayerId, int] = field(default_factory=dict)
@@ -33,6 +46,10 @@ class CollisionResult:
 
     freeze_activated: bool = False
     shield_activated_for: list[PlayerId] = field(default_factory=list)
+    pickups_to_spawn: list[Vec] = field(default_factory=list)   # posições para spawn de pickups
+    freeze_activated: bool = False                               # True quando pickup coletado
+    instant_kills: list[PlayerId] = field(default_factory=list)
+    triple_shoots_to_spawn: list[Vec] = field(default_factory=list)    # posições para spawn de triple-shots
 
 
 class CollisionManager:
@@ -44,8 +61,10 @@ class CollisionManager:
         bullets: pg.sprite.Group,
         asteroids: pg.sprite.Group,
         ufos: pg.sprite.Group,
+        black_holes: pg.sprite.Group,
         freezes: pg.sprite.Group | None = None,
         shields: pg.sprite.Group | None = None,
+        triple_shots: pg.sprite.Group | None = None,
     ) -> CollisionResult:
         """Executa todos os testes de colisão e retorna o resultado agregado."""
 
@@ -63,6 +82,9 @@ class CollisionManager:
         if shields is not None:
             self._ship_vs_shield_pickups(ships, shields, result)
 
+        self._ship_vs_black_holes(ships, black_holes, result)
+        if triple_shots is not None:
+            self._ship_vs_triple_shot_power_ups(ships, triple_shots, result)
         return result
 
     def _bullets_vs_asteroids(
@@ -204,6 +226,39 @@ class CollisionManager:
                     pickup.kill()
                     result.shield_activated_for.append(ship.player_id)
                     result.events.append("shield_activated")
+                    return          # um pickup por frame é suficiente
+                
+    def _ship_vs_triple_shot_power_ups(
+        self,
+        ships: dict[PlayerId, Ship],
+        triple_shots: pg.sprite.Group,
+        result: CollisionResult,
+    ) -> None:
+        """Verifica se alguma nave tocou um coletável de tiro triplo.
+
+        Ao coletar, remove o power-up e ativa o efeito de tiro triplo na nave.
+        """
+        for ship in ships.values():
+            for power_up in list(triple_shots):
+                distancia = (ship.pos - power_up.pos).length()
+                if distancia < (ship.r + power_up.r):
+                    power_up.kill()
+                    ship.triple_shoot = True
+                    ship.triple_shot_timer = float(C.TRIPLE_SHOT_DURATION)
+                    result.events.append("triple_shot_activated")
+                    return
+
+    def _ship_vs_black_holes(
+        self,
+        ships: dict[PlayerId, Ship],
+        black_holes: pg.sprite.Group,
+        result: CollisionResult,
+    ) -> None:
+        """Instant Game Over when a ship touches a black hole."""
+        for ship in ships.values():
+            for bh in black_holes:
+                if (bh.pos - ship.pos).length() < (bh.r + ship.r):
+                    result.instant_kills.append(ship.player_id)
                     return
 
     def _split_asteroid(
@@ -226,6 +281,9 @@ class CollisionManager:
 
         if random() < C.FREEZE_SPAWN_CHANCE:
             result.pickups_to_spawn.append(Vec(pos))
+        
+        if random() < C.TRIPLE_SHOT_SPAWN_CHANCE:
+            result.triple_shoots_to_spawn.append(Vec(pos))
 
         if random() < C.SHIELD_SPAWN_CHANCE:
             result.shield_pickups_to_spawn.append(Vec(pos))

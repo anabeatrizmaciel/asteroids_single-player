@@ -5,7 +5,7 @@ import math
 import pygame as pg
 
 from core import config as C
-from core.entities import Asteroid, Bullet, FreezePickup, Ship, UFO
+from core.entities import Asteroid, Bullet, FreezePickup, ShieldPickup, Ship, UFO
 from core.scene import SceneState
 
 
@@ -29,7 +29,8 @@ class Renderer:
             Asteroid: self._draw_asteroid,
             Ship: self._draw_ship,
             UFO: self._draw_ufo,
-            FreezePickup: self._draw_freeze_pickup,  # coletável de congelamento
+            FreezePickup: self._draw_freeze_pickup,
+            ShieldPickup: self._draw_shield_pickup,
         }
 
     def clear(self) -> None:
@@ -49,20 +50,25 @@ class Renderer:
         wave: int,
         state: SceneState,
         freeze_timer: float = 0.0,
+        shield_timer: float = 0.0,
     ) -> None:
-        """Desenha o HUD com pontuação, vidas, wave e (se ativo) timer de freeze."""
+        """Desenha o HUD com pontuação, vidas, wave e timers de efeitos."""
         if state != SceneState.PLAY:
             return
 
-        text = f"SCORE {score:06d}   LIVES {lives}   WAVE {wave}"
+        text = f"SCORE {score:06d} LIVES {lives} WAVE {wave}"
         label = self.font.render(text, True, self.config.WHITE)
         self.screen.blit(label, (10, 10))
 
-        # exibe o contador de congelamento enquanto estiver ativo
         if freeze_timer > 0.0:
             freeze_text = f"FREEZE {freeze_timer:.1f}s"
             freeze_label = self.font.render(freeze_text, True, C.FREEZE_COLOR)
             self.screen.blit(freeze_label, (10, 36))
+
+        if shield_timer > 0.0:
+            shield_text = f"SHIELD {shield_timer:.1f}s"
+            shield_label = self.font.render(shield_text, True, C.SHIELD_COLOR)
+            self.screen.blit(shield_label, (10, 62))
 
     def draw_menu(self) -> None:
         self._draw_text(
@@ -74,7 +80,7 @@ class Renderer:
         self._draw_text(
             self.font,
             "Press any key",
-            self.config.WIDTH // 2 - 170,
+            self.config.WIDTH // 2 - 100,
             350,
         )
 
@@ -139,6 +145,16 @@ class Renderer:
                 width=1,
             )
 
+        if ship.shield_timer > 0.0 and int(ship.shield_timer * 10) % 2 == 0:
+            center = (int(ship.pos.x), int(ship.pos.y))
+            pg.draw.circle(
+                self.screen,
+                C.SHIELD_COLOR,
+                center,
+                ship.r + 10,
+                width=2,
+            )
+
     def _draw_ufo(self, ufo: UFO) -> None:
         width = ufo.r * 2
         height = ufo.r
@@ -151,27 +167,28 @@ class Renderer:
         cup.center = (int(ufo.pos.x), int(ufo.pos.y - height * 0.3))
         pg.draw.ellipse(self.screen, self.config.WHITE, cup, width=1)
 
-    def _draw_freeze_pickup(self, pickup: FreezePickup) -> None:
-        """Desenha um cristal de gelo (floco de neve simplificado) na tela.
+    def _draw_shield_pickup(self, pickup: ShieldPickup) -> None:
+        """Desenha um coletável de escudo como anéis concêntricos."""
+        center = (int(pickup.pos.x), int(pickup.pos.y))
+        pg.draw.circle(self.screen, C.SHIELD_COLOR, center, pickup.r, width=2)
+        pg.draw.circle(self.screen, C.SHIELD_COLOR, center, max(4, pickup.r // 2), width=1)
 
-        O floco é formado por 6 linhas saindo do centro em ângulos de 60°,
-        com duas hastes menores cruzadas em cada extremidade.
-        """
+    def _draw_freeze_pickup(self, pickup: FreezePickup) -> None:
+        """Desenha um cristal de gelo (floco de neve simplificado) na tela."""
         cx, cy = int(pickup.pos.x), int(pickup.pos.y)
         r = pickup.r
         cor = C.FREEZE_COLOR
 
-        # 6 eixos do floco (0°, 60°, 120°, ... 300°)
         for i in range(6):
             ang = math.radians(i * 60)
             ex = cx + int(r * math.cos(ang))
             ey = cy + int(r * math.sin(ang))
-            # linha principal do eixo
+
             pg.draw.line(self.screen, cor, (cx, cy), (ex, ey), 1)
 
-            # hastes laterais no meio do eixo
             mid_x = cx + int((r * 0.5) * math.cos(ang))
             mid_y = cy + int((r * 0.5) * math.sin(ang))
+
             for delta in (-60, 60):
                 side_ang = math.radians(i * 60 + delta)
                 sx = mid_x + int((r * 0.3) * math.cos(side_ang))

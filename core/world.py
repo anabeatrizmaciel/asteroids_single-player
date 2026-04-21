@@ -10,6 +10,7 @@ from core import config as C
 from core.collisions import CollisionManager
 from core.commands import PlayerCommand
 from core.entities import Asteroid, FreezePickup, BlackHole, Ship, UFO
+from core.entities import Asteroid, FreezePickup, Ship, UFO, TripleShootPowerUp
 from core.utils import Vec, rand_edge_pos
 
 PlayerId = int
@@ -30,6 +31,7 @@ class World:
         self.ufos = pg.sprite.Group()
         self.freezes = pg.sprite.Group()    # coletáveis de congelamento ativos
         self.black_holes = pg.sprite.Group()
+        self.triple_shot = pg.sprite.Group()  # coletáveis de tiro triplo ativos
         self.all_sprites = pg.sprite.Group()
 
         self.scores: Dict[PlayerId, int] = {}
@@ -96,6 +98,12 @@ class World:
         pickup = FreezePickup(pos)
         self.freezes.add(pickup)
         self.all_sprites.add(pickup)
+    
+    def spawn_triple_shot_power_up(self, pos: Vec) -> None:
+        """Cria um TripleShootPowerUp na posição indicada e o adiciona aos grupos."""
+        power_up = TripleShootPowerUp(pos)
+        self.triple_shot.add(power_up)
+        self.all_sprites.add(power_up)
 
     def spawn_ufo(self) -> None:
         small = uniform(0, 1) < 0.5
@@ -132,6 +140,8 @@ class World:
         self._update_bh_timer(dt)
         self._handle_collisions()
         self._maybe_start_next_wave(dt)
+        for ship in self.ships.values():
+            ship._update_triple_shot_timer(dt)
 
     def _apply_commands(
         self,
@@ -251,6 +261,7 @@ class World:
             self.ships, self.bullets, self.asteroids, self.ufos,
             self.black_holes,
             freezes=self.freezes,   # passa os pickups para detecção de colisão
+            triple_shots=self.triple_shot,  # passa os power-ups de tiro triplo para detecção de colisão
         )
 
         self.events.extend(result.events)
@@ -265,6 +276,9 @@ class World:
         # spawn de coletáveis Freeze onde asteroides foram destruídos
         for pos in result.pickups_to_spawn:
             self.spawn_freeze_pickup(pos)
+        
+        for pos in result.triple_shoots_to_spawn:
+            self.spawn_triple_shot_power_up(pos)
 
         # ativa o congelamento se o jogador coletou um pickup neste frame
         if result.freeze_activated:

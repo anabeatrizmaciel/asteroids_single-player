@@ -6,6 +6,7 @@ import pygame as pg
 
 from core import config as C
 from core.entities import Asteroid, BlackHole, Bullet, FreezePickup, Ship, UFO
+from core.entities import Asteroid, Bullet, FreezePickup, Ship, UFO, TripleShootPowerUp
 from core.scene import SceneState
 
 
@@ -31,6 +32,7 @@ class Renderer:
             UFO: self._draw_ufo,
             FreezePickup: self._draw_freeze_pickup,  # coletável de congelamento
             BlackHole: self._draw_black_hole,
+            TripleShootPowerUp: self._draw_triple_shot_power_up,  # coletável de tiro triplo
         }
 
     def clear(self) -> None:
@@ -50,6 +52,7 @@ class Renderer:
         wave: int,
         state: SceneState,
         freeze_timer: float = 0.0,
+        triple_shot_timer: float = 0.0,
     ) -> None:
         """Desenha o HUD com pontuação, vidas, wave e (se ativo) timer de freeze."""
         if state != SceneState.PLAY:
@@ -64,6 +67,12 @@ class Renderer:
             freeze_text = f"FREEZE {freeze_timer:.1f}s"
             freeze_label = self.font.render(freeze_text, True, C.FREEZE_COLOR)
             self.screen.blit(freeze_label, (10, 36))
+        
+        # Contador de tiro triplo
+        if triple_shot_timer > 0.0:
+            triple_text = f"TRIPLE SHOT {triple_shot_timer:.1f}s"
+            triple_label = self.font.render(triple_text, True, C.TRIPLE_SHOT_COLOR)
+            self.screen.blit(triple_label, (10, 62))
 
     def draw_menu(self) -> None:
         self._draw_text(
@@ -194,3 +203,33 @@ class Renderer:
 
         # Bright event-horizon border
         pg.draw.circle(self.screen, self.config.PURPLE_LIGHT, center, bh.r, width=2)
+    def _draw_triple_shot_power_up(self, power_up: TripleShootPowerUp) -> None:
+        """Desenha um ícone de tiro triplo com setas estilizadas e brilho."""
+        cx, cy = int(power_up.pos.x), int(power_up.pos.y)
+        r = power_up.r
+        cor_principal = (255, 215, 0)  # Dourado
+        cor_brilho = (255, 255, 150)    # Amarelo claro
+        
+
+        angulos = [-30, 0, 30]
+        
+        for ang_deg in angulos:
+            rad = math.radians(ang_deg - 90)
+            
+            ponta = (
+                cx + int(r * math.cos(rad)),
+                cy + int(r * math.sin(rad))
+            )
+            
+            asa_esq = (
+                cx + int(r * 0.5 * math.cos(rad + 2.5)),
+                cy + int(r * 0.5 * math.sin(rad + 2.5))
+            )
+            asa_dir = (
+                cx + int(r * 0.5 * math.cos(rad - 2.5)),
+                cy + int(r * 0.5 * math.sin(rad - 2.5))
+            )
+            
+            pg.draw.polygon(self.screen, cor_principal, [ponta, asa_esq, asa_dir])
+            
+            pg.draw.circle(self.screen, cor_brilho, ponta, 2)

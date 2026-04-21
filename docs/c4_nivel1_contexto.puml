@@ -1,0 +1,20 @@
+@startuml C4_Nivel1_Contexto
+' Diagrama C4 - Nível 1: Contexto
+' Referência: https://c4model.com
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Diagrama de Contexto — Asteroids Single Player (C4 Nível 1)
+
+' Ator externo
+Person(jogador, "Jogador", "Controla a nave com o teclado e acompanha a partida na tela.")
+
+' Sistema principal
+System(asteroids, "Asteroids Gameplay", "Jogo arcade desktop em Python/Pygame.")
+
+' Relacionamento principal
+Rel(jogador, asteroids, "Joga, envia comandos por teclado e recebe feedback visual/sonoro")
+
+@enduml

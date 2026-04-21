@@ -46,7 +46,7 @@ O jogador pode coletar um item que permite disparar múltiplos tiros simultâneo
 Ao destruir asteroides, um coletável azul aparece na tela. Tocá-lo com a nave congela todos os asteroides por 5 segundos, dando tempo para eliminar os restantes com segurança.
 
 ### 4. Buraco Negro
-Um buraco negro aparece em um ponto aleatório e dura entre 5 a 10 segundos. Afeta a movimentação da nave do jogador, puxando em sua direção com força variável conforme a distância. Caso o jogador encoste no buraco negro, é fim de jogo.
+Um buraco negro aparece em um ponto aleatório e dura entre 5 a 10 segundos. Afeta a movimentação da nave do jogador, puxando em sua direção com força variável conforme a distância. Caso o jogador encoste no buraco negro, é fim de jogo instantâneo.
 
 ### 5. Power-Ups
 Itens coletáveis que concedem bônus ao jogador.

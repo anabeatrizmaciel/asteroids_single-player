@@ -92,6 +92,7 @@ class Ship(pg.sprite.Sprite):
         self.cool = 0.0
         self.target_pos: Vec | None = None
         self.invuln = 0.0
+        self.shield_timer = 0.0
         self.r = int(C.SHIP_RADIUS)
         self.rect = pg.Rect(0, 0, self.r * 2, self.r * 2)
         self.triple_shoot = False       # Se True, permite disparar 3 tiros ao mesmo tempo
@@ -195,6 +196,11 @@ class Ship(pg.sprite.Sprite):
             if self.invuln < 0.0:
                 self.invuln = 0.0
 
+        if self.shield_timer > 0.0:
+            self.shield_timer -= dt
+            if self.shield_timer < 0.0:
+                self.shield_timer = 0.0
+
         self.pos += self.vel * dt
         self.pos = wrap_pos(self.pos)
         self.rect.center = (int(self.pos.x), int(self.pos.y))
@@ -204,7 +210,6 @@ class Ship(pg.sprite.Sprite):
         dirv = angle_to_vec(self.angle)
         left = angle_to_vec(self.angle + C.SHIP_NOSE_ANGLE)
         right = angle_to_vec(self.angle - C.SHIP_NOSE_ANGLE)
-
         p1 = self.pos + dirv * self.r
         p2 = self.pos + left * self.r * C.SHIP_NOSE_SCALE
         p3 = self.pos + right * self.r * C.SHIP_NOSE_SCALE
@@ -221,12 +226,29 @@ class FreezePickup(pg.sprite.Sprite):
     def __init__(self, pos: Vec) -> None:
         super().__init__()
         self.pos = Vec(pos)
-        self.ttl = float(C.FREEZE_PICKUP_TTL)   # contador de tempo de vida
+        self.ttl = float(C.FREEZE_PICKUP_TTL)
         self.r = int(C.FREEZE_PICKUP_RADIUS)
         self.rect = pg.Rect(0, 0, self.r * 2, self.r * 2)
 
     def update(self, dt: float) -> None:
-        """Decrementa o TTL e se remove ao expirar."""
+        self.ttl -= dt
+        if self.ttl <= 0.0:
+            self.kill()
+            return
+        self.rect.center = (int(self.pos.x), int(self.pos.y))
+
+
+class ShieldPickup(pg.sprite.Sprite):
+    """Coletável que concede um escudo temporário à nave."""
+
+    def __init__(self, pos: Vec) -> None:
+        super().__init__()
+        self.pos = Vec(pos)
+        self.ttl = float(C.SHIELD_PICKUP_TTL)
+        self.r = int(C.SHIELD_PICKUP_RADIUS)
+        self.rect = pg.Rect(0, 0, self.r * 2, self.r * 2)
+
+    def update(self, dt: float) -> None:
         self.ttl -= dt
         if self.ttl <= 0.0:
             self.kill()
@@ -265,13 +287,11 @@ class UFO(pg.sprite.Sprite):
         self.small = small
         cfg = C.UFO_SMALL if small else C.UFO_BIG
         self.r = int(cfg["r"])
-
         self.pos = Vec(pos)
         self.vel = Vec(0, 0)
         self.speed = float(C.UFO_SPEED_SMALL if small else C.UFO_SPEED_BIG)
         self.cool = 0.0
         self.move_dir: Vec | None = None
-
         self.target_pos: Vec | None = None
 
         if self.small:
@@ -305,6 +325,7 @@ class UFO(pg.sprite.Sprite):
             return
 
         mode = choice(["h", "v", "d"])
+
         if mode == "h":
             y = uniform(0, C.HEIGHT)
             left_to_right = uniform(0, 1) < 0.5
@@ -328,7 +349,7 @@ class UFO(pg.sprite.Sprite):
         start = choice(corners)
         target = Vec(C.WIDTH - start.x, C.HEIGHT - start.y)
         self.pos = Vec(start)
-        dirv = (target - start)
+        dirv = target - start
         if dirv.length_squared() > 0:
             dirv = dirv.normalize()
         self.vel = dirv * self.speed
@@ -349,7 +370,6 @@ class UFO(pg.sprite.Sprite):
     def _update_pursue(self, dt: float) -> None:
         if self.move_dir is not None:
             self.vel = self.move_dir * self.speed
-
         self.pos += self.vel * dt
         self._kill_if_outside_screen()
 
@@ -383,19 +403,16 @@ class UFO(pg.sprite.Sprite):
             if to_target.length_squared() < 1e-6:
                 return None
             dirv = to_target.normalize()
-
-        jitter = (
-            C.UFO_AIM_JITTER_DEG_SMALL
-            if self.small
-            else C.UFO_AIM_JITTER_DEG_BIG
-        )
-        dirv = rotate_vec(dirv, uniform(-jitter, jitter))
+            jitter = (
+                C.UFO_AIM_JITTER_DEG_SMALL if self.small else C.UFO_AIM_JITTER_DEG_BIG
+            )
+            dirv = rotate_vec(dirv, uniform(-jitter, jitter))
 
         vel = dirv * C.UFO_BULLET_SPEED
         ttl = float(C.UFO_BULLET_TTL)
-
         rate = C.UFO_FIRE_RATE_SMALL if self.small else C.UFO_FIRE_RATE_BIG
         self.cool = float(rate)
+        return Bullet(UFO_BULLET_OWNER, self.pos, vel, ttl=ttl)
 
         return Bullet(UFO_BULLET_OWNER, self.pos, vel, ttl=ttl)
 

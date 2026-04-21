@@ -11,6 +11,7 @@ import pygame as pg
 
 from core import config as C
 from core.scene import SceneState
+
 from client.audio import load_sounds
 from client.audio_manager import AudioManager
 from client.controls import InputMapper
@@ -22,18 +23,23 @@ class Game:
     """Orchestrates input -> update -> draw."""
 
     def __init__(self) -> None:
-        pg.mixer.pre_init(C.AUDIO_FREQUENCY, C.AUDIO_SIZE, C.AUDIO_CHANNELS, C.AUDIO_BUFFER)
+        pg.mixer.pre_init(
+            C.AUDIO_FREQUENCY,
+            C.AUDIO_SIZE,
+            C.AUDIO_CHANNELS,
+            C.AUDIO_BUFFER,
+        )
         pg.init()
         pg.mixer.init()
 
         self.screen = pg.display.set_mode((C.WIDTH, C.HEIGHT))
         pg.display.set_caption("Asteroids")
-
         self.clock = pg.time.Clock()
         self.running = True
 
         self.font = pg.font.SysFont(C.FONT_NAME, C.FONT_SIZE_SMALL)
         self.big = pg.font.SysFont(C.FONT_NAME, C.FONT_SIZE_LARGE)
+
         self.renderer = Renderer(
             self.screen,
             config=C,
@@ -43,7 +49,6 @@ class Game:
         self.scene = SceneState.MENU
         self.world = World()
         self.input_mapper = InputMapper()
-
         self.sounds = load_sounds(C.SOUND_PATH)
         self.audio = AudioManager(self.sounds)
 
@@ -111,14 +116,21 @@ class Game:
             return
 
         self.renderer.draw_world(self.world)
+
+        ship = self.world.get_ship(C.LOCAL_PLAYER_ID)
+        shield_timer = ship.shield_timer if ship is not None else 0.0
+
         self.renderer.draw_hud(
             self.world.scores.get(C.LOCAL_PLAYER_ID, 0),
             self.world.lives.get(C.LOCAL_PLAYER_ID, 0),
             self.world.wave,
             self.scene,
+            freeze_timer=self.world.freeze_timer,
+            shield_timer=shield_timer,
             freeze_timer=self.world.freeze_timer,   # exibe contador de freeze
             triple_shot_timer=self.world.ships.get(C.LOCAL_PLAYER_ID, {}).triple_shot_timer,  # exibe contador de tiro triplo
         )
+
         pg.display.flip()
 
     def _quit(self) -> None:
